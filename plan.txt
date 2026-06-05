@@ -1,0 +1,3 @@
+# RSS Reader Application
+
+This will be a comprehensive single-page RSS reader. Let me generate the full HTML file.
