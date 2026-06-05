@@ -8,7 +8,7 @@
 <style>
 
 :root {
-    --sidebar-w: 300px; --bg: #f5f5f7; --sidebar-bg: #fff;
+    --sidebar-w: 280px; --detail-w: 0px; --bg: #f5f5f7; --sidebar-bg: #fff;
     --card-bg: #fff; --text: #1d1d1f; --text2: #6e6e73;
     --accent: #007aff; --border: #e5e5ea; --hover: #f0f0f5;
     --danger: #ff3b30; --success: #34c759;
@@ -43,7 +43,8 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .content-header { display:flex; align-items:center; padding:12px 20px; gap:12px; border-bottom:1px solid var(--border); background:var(--card-bg); }
 .content-header span { font-size:16px; font-weight:600; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.articles-wrap { flex:1; overflow-y:auto; }
+.body-wrap { flex:1; display:flex; overflow:hidden; }
+.articles-wrap { flex:1; overflow-y:auto; border-right:1px solid var(--border); max-width:50%; min-width:280px; }
 .article-card { padding:16px 20px; border-bottom:1px solid var(--border); cursor:pointer; max-width:800px; margin:0 auto; transition:background .1s; }
 .article-card:hover { background:var(--hover); }
 .article-card.unread .ac-title { font-weight:700; color:var(--text); }
@@ -58,6 +59,28 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .spinner { text-align:center; padding:40px; color:var(--text2); }
 .spinner i { font-size:24px; animation:spin 1s linear infinite; display:block; }
 @keyframes spin { to { transform:rotate(360deg); } }
+.detail-panel { width:var(--detail-w); min-width:var(--detail-w); background:var(--card-bg); overflow-y:auto; transition:width .25s ease,min-width .25s ease; display:flex; flex-direction:column; }
+.detail-panel.open { width:45%; min-width:45%; }
+.detail-header { display:flex; align-items:center; padding:12px 20px; gap:8px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card-bg); z-index:10; }
+.detail-header .dh-title { font-size:14px; font-weight:600; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.detail-body { padding:24px; flex:1; overflow-y:auto; }
+.detail-body h1 { font-size:24px; font-weight:700; line-height:1.4; margin-bottom:12px; }
+.detail-body .db-meta { font-size:13px; color:var(--text2); margin-bottom:20px; display:flex; gap:12px; flex-wrap:wrap; }
+.detail-body .db-meta span { display:flex; align-items:center; gap:4px; }
+.detail-body .db-content { font-size:16px; line-height:1.8; color:var(--text); }
+.detail-body .db-content p { margin-bottom:12px; }
+.detail-body .db-content a { color:var(--accent); text-decoration:underline; }
+.detail-body .db-content img { max-width:100%; height:auto; border-radius:8px; margin:12px 0; }
+.detail-body .db-content blockquote { border-left:3px solid var(--accent); padding-left:16px; margin:16px 0; color:var(--text2); }
+.detail-body .db-content h2 { font-size:20px; margin:24px 0 12px; }
+.detail-body .db-content h3 { font-size:17px; margin:20px 0 10px; }
+.detail-body .db-content ul, .detail-body .db-content ol { padding-left:24px; margin:12px 0; }
+.detail-body .db-content code { background:#f0f0f5; padding:2px 6px; border-radius:4px; font-size:14px; }
+.detail-body .db-content pre { background:#1d1d1f; color:#f5f5f7; padding:16px; border-radius:8px; overflow-x:auto; margin:16px 0; }
+.detail-body .db-content pre code { background:transparent; color:inherit; padding:0; }
+.detail-body .db-source-link { margin-top:24px; padding-top:16px; border-top:1px solid var(--border); }
+.detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text2); padding:40px; text-align:center; }
+.detail-empty i { font-size:40px; color:var(--border); margin-bottom:12px; }
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; align-items:center; justify-content:center; }
 .modal-overlay.show { display:flex; }
 .modal { background:var(--card-bg); border-radius:16px; padding:24px; width:90%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,.2); animation:modalIn .2s ease; }
@@ -73,7 +96,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--text); color:#fff; padding:10px 20px; border-radius:20px; font-size:14px; z-index:300; opacity:0; transition:opacity .3s; pointer-events:none; }
 .toast.show { opacity:1; }
 .spinning i { animation:spin .5s linear infinite !important; }
-@media (max-width:768px) { .sidebar { position:fixed; left:0; top:0; bottom:0; transform:translateX(-100%); } .sidebar.open { transform:translateX(0); } .hamburger { display:block; } }
+@media (max-width:768px) { .sidebar { position:fixed; left:0; top:0; bottom:0; transform:translateX(-100%); } .sidebar.open { transform:translateX(0); } .hamburger { display:block; } .detail-panel.open { position:fixed; left:0; right:0; bottom:0; width:100%!important; min-width:100%!important; height:80vh; border-top:1px solid var(--border); z-index:150; border-radius:16px 16px 0 0; } .articles-wrap { max-width:100%; } }
 
 </style>
 </head>
@@ -92,11 +115,24 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 <span id="contentTitle">RSSTitle</span>
 <button class="btn-icon" id="refreshBtn" title="刷新"><i class="fas fa-sync-alt"></i></button>
 </div>
+<div class="body-wrap">
 <div class="articles-wrap" id="articlesWrap">
 <div class="welcome">
 <i class="fas fa-rss"></i>
 <h2>Welcome to RSS Reader</h2>
 <p>Select a feed from the sidebar or add a new one.</p>
+</div>
+</div>
+<div class="detail-panel" id="detailPanel">
+<div class="detail-empty" id="detailEmpty">
+<i class="fas fa-file-alt"></i>
+<p>Click an article to read</p>
+</div>
+<div class="detail-header" id="detailHeader" style="display:none">
+<button class="btn-icon" id="closeDetailBtn" title="Close"><i class="fas fa-times"></i></button>
+<span class="dh-title" id="detailTitle"></span>
+</div>
+<div class="detail-body" id="detailBody" style="display:none"></div>
 </div>
 </div>
 </div>
@@ -202,9 +238,41 @@ function renderArticles(){
     wrap.querySelectorAll(".article-card").forEach(el=>{
         el.addEventListener("click",()=>{
             const art=articles.find(a=>a.id===el.dataset.id);
-            if(art){readIds.add(art.id);save();renderArticles();renderFeedList();window.open(art.link,"_blank");}
+            if(art){readIds.add(art.id);save();renderArticles();renderFeedList();openArticle(art);}
         });
     });
+}
+
+function openArticle(art){
+    const panel=document.getElementById("detailPanel");
+    const header=document.getElementById("detailHeader");
+    const body=document.getElementById("detailBody");
+    const empty=document.getElementById("detailEmpty");
+    empty.style.display="none";
+    header.style.display="flex";
+    body.style.display="block";
+    document.getElementById("detailTitle").textContent=art.title;
+    // Parse content: try enclosure/image first, then description/content
+    let content="";
+    if(art.enclosure&&art.enclosure.link){
+        content=`<img src="${esc(art.enclosure.link)}" onerror="this.style.display='none'">`;
+    }
+    // Also show description if available
+    if(art.description){
+        content+=art.description;
+    }
+    if(art.content&&art.content!==art.description){
+        content+=art.content;
+    }
+    body.innerHTML=`<h1>${esc(art.title)}</h1><div class="db-meta"><span><i class="fas fa-newspaper"></i> ${esc(art.feedTitle||"")}</span><span><i class="far fa-clock"></i> ${timeAgo(art.pubDate)}</span></div><div class="db-content">${content}</div><div class="db-source-link"><a href="${esc(art.link)}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 访问原文</a></div>`;
+    panel.classList.add("open");
+}
+
+function closeArticle(){
+    document.getElementById("detailPanel").classList.remove("open");
+    document.getElementById("detailHeader").style.display="none";
+    document.getElementById("detailBody").style.display="none";
+    document.getElementById("detailEmpty").style.display="flex";
 }
 
 function updateStats(){
@@ -276,6 +344,7 @@ document.getElementById("addFeedForm").addEventListener("submit",async e=>{
 
 document.getElementById("menuBtn").addEventListener("click",()=>{document.getElementById("sidebar").classList.toggle("open");});
 document.getElementById("refreshBtn").addEventListener("click",refreshFeeds);
+document.getElementById("closeDetailBtn").addEventListener("click",closeArticle);
 
 // Close modal on overlay click
 document.getElementById("addFeedModal").addEventListener("click",function(e){if(e.target===this)this.classList.remove("show");});
