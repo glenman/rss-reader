@@ -346,7 +346,7 @@ function esc(s){if(!s)return"";const d=document.createElement("div");d.textConte
 document.getElementById("addFeedBtn").addEventListener("click",()=>{
     const sel=document.getElementById("feedCategory");
     const cats=[...new Set(feeds.map(f=>f.category))];
-    sel.innerHTML=cats.map(c=>"<option>"+c+"</option>").join("")+"<option value=__new__>+ New Category</option>";
+    sel.innerHTML=cats.map(c=>'<option>'+c+'</option>').join('')+'<option value="__new__">+ New Category</option>';
     document.getElementById("addFeedModal").classList.add("show");
 });
 
