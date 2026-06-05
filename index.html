@@ -65,6 +65,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .detail-header .dh-title { font-size:14px; font-weight:600; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .detail-body { padding:24px; flex:1; overflow-y:auto; }
 .detail-body h1 { font-size:24px; font-weight:700; line-height:1.4; margin-bottom:12px; }
+.detail-body .db-content h1 { font-size:inherit; font-weight:inherit; margin:inherit; line-height:inherit; }
 .detail-body .db-meta { font-size:13px; color:var(--text2); margin-bottom:20px; display:flex; gap:12px; flex-wrap:wrap; }
 .detail-body .db-meta span { display:flex; align-items:center; gap:4px; }
 .detail-body .db-content { font-size:16px; line-height:1.8; color:var(--text); }
@@ -72,8 +73,9 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .detail-body .db-content a { color:var(--accent); text-decoration:underline; }
 .detail-body .db-content img { max-width:100%; height:auto; border-radius:8px; margin:12px 0; }
 .detail-body .db-content blockquote { border-left:3px solid var(--accent); padding-left:16px; margin:16px 0; color:var(--text2); }
-.detail-body .db-content h2 { font-size:20px; margin:24px 0 12px; }
-.detail-body .db-content h3 { font-size:17px; margin:20px 0 10px; }
+.detail-body .db-content h2 { font-size:20px; margin:24px 0 12px; font-weight:700; }
+.detail-body .db-content h3 { font-size:17px; margin:20px 0 10px; font-weight:600; }
+.detail-body .db-content h4, .detail-body .db-content h5, .detail-body .db-content h6 { font-size:15px; margin:16px 0 8px; font-weight:600; }
 .detail-body .db-content ul, .detail-body .db-content ol { padding-left:24px; margin:12px 0; }
 .detail-body .db-content code { background:#f0f0f5; padding:2px 6px; border-radius:4px; font-size:14px; }
 .detail-body .db-content pre { background:#1d1d1f; color:#f5f5f7; padding:16px; border-radius:8px; overflow-x:auto; margin:16px 0; }
@@ -252,20 +254,73 @@ function openArticle(art){
     header.style.display="flex";
     body.style.display="block";
     document.getElementById("detailTitle").textContent=art.title;
-    // Parse content: try enclosure/image first, then description/content
-    let content="";
-    if(art.enclosure&&art.enclosure.link){
-        content=`<img src="${esc(art.enclosure.link)}" onerror="this.style.display='none'">`;
+    body.innerHTML=`<div class="spinner"><i class="fas fa-spinner"></i><p>正在加载文章...</p></div>`;
+    // Try proxy to fetch full article content
+    const proxyUrl="https://api.allorigins.win/raw?url="+encodeURIComponent(art.link);
+    fetch(proxyUrl).then(r=>{
+        if(!r.ok) throw new Error("proxy failed");
+        return r.text();
+    }).then(html=>{
+        return extractArticle(html,art);
+    }).then(articleHtml=>{
+        if(articleHtml){
+            body.innerHTML=buildArticleHtml(art,articleHtml);
+        } else {
+            // Fallback to description
+            let fallback=art.description||art.content||"";
+            if(art.enclosure&&art.enclosure.link){
+                fallback=`<img src="${esc(art.enclosure.link)}" onerror="this.style.display='none'">`+fallback;
+            }
+            body.innerHTML=buildArticleHtml(art,fallback);
+        }
+    }).catch(err=>{
+        console.error("Fetch error:",err);
+        let fallback=art.description||art.content||"";
+        if(art.enclosure&&art.enclosure.link){
+            fallback=`<img src="${esc(art.enclosure.link)}" onerror="this.style.display='none'">`+fallback;
+        }
+        body.innerHTML=buildArticleHtml(art,fallback);
+    });
+}
+
+function extractArticle(html,art){
+    const parser=new DOMParser();
+    const doc=parser.parseFromString(html,"text/html");
+    // Remove unwanted elements
+    doc.querySelectorAll("script,style,nav,footer,.sidebar,.ad,.ads,.social-share,.comments,iframe,noscript,.cookie,.banner,.popup").forEach(el=>el.remove());
+    // Find main content
+    let contentEl=null;
+    const selectors=["#article-body","#article-content","#post-content","#post_content",".article-body",".post-content",".entry-content","#content-main","#content","#article","#post","article","main"];
+    for(const sel of selectors){
+        contentEl=doc.querySelector(sel);
+        if(contentEl) break;
     }
-    // Also show description if available
-    if(art.description){
-        content+=art.description;
+    if(!contentEl){
+        // Fallback: find the largest text container
+        const containers=doc.querySelectorAll("div,section,article,main,p");
+        let maxLen=0;
+        containers.forEach(el=>{
+            const textLen=el.textContent.trim().length;
+            if(textLen>maxLen && textLen>300){
+                maxLen=textLen;
+                contentEl=el;
+            }
+        });
     }
-    if(art.content&&art.content!==art.description){
-        content+=art.content;
-    }
-    body.innerHTML=`<h1>${esc(art.title)}</h1><div class="db-meta"><span><i class="fas fa-newspaper"></i> ${esc(art.feedTitle||"")}</span><span><i class="far fa-clock"></i> ${timeAgo(art.pubDate)}</span></div><div class="db-content">${content}</div><div class="db-source-link"><a href="${esc(art.link)}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 访问原文</a></div>`;
-    panel.classList.add("open");
+    if(!contentEl) contentEl=doc.body;
+    // Convert relative URLs to absolute
+    const base=new URL(art.link);
+    contentEl.querySelectorAll("img[src]").forEach(img=>{
+        try{img.src=new URL(img.src,base).href;}catch(e){}
+    });
+    contentEl.querySelectorAll("a[href]").forEach(a=>{
+        try{a.href=new URL(a.href,base).href;}catch(e){}
+    });
+    return contentEl.innerHTML;
+}
+
+function buildArticleHtml(art,html){
+    return `<h1>${esc(art.title)}</h1><div class="db-meta"><span><i class="fas fa-newspaper"></i> ${esc(art.feedTitle||"")}</span><span><i class="far fa-clock"></i> ${timeAgo(art.pubDate)}</span></div><div class="db-content">${html}</div><div class="db-source-link"><a href="${esc(art.link)}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 访问原文</a></div>`;
 }
 
 function closeArticle(){
