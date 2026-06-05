@@ -167,15 +167,40 @@ const STORAGE_READ="rss_read_ids";
 let feeds=[], articles=[], readIds=new Set(), currentFeedId=null, refreshing=false;
 
 const DEFAULT_FEEDS=[
-{id:"openai",title:"OpenAI Blog",url:"https://openai.com/blog/rss.xml",category:"AI"},
-{id:"anthropic",title:"Anthropic News",url:"https://www.anthropic.com/news/rss.xml",category:"AI"},
-{id:"techcrunch",title:"TechCrunch",url:"https://techcrunch.com/feed/",category:"Tech"},
-{id:"verge",title:"The Verge",url:"https://www.theverge.com/rss/index.xml",category:"Tech"},
-{id:"hackernews",title:"Hacker News",url:"https://hnrss.org/frontpage",category:"Tech"},
-{id:"bbc",title:"BBC News",url:"https://feeds.bbci.co.uk/news/rss.xml",category:"News"},
-{id:"reuters",title:"Reuters",url:"https://www.reutersagency.com/feed/",category:"News"},
-{id:"guardian",title:"The Guardian",url:"https://www.theguardian.com/world/rss",category:"News"}
-];
+{id:"ithome_0",title:"IT之家",url:"https://www.ithome.com/rss/",category:"国内科技"},
+{id:"sspai",title:"少数派",url:"https://sspai.com/feed",category:"国内科技"},
+{id:"ifanr",title:"爱范儿",url:"https://www.ifanr.com/feed",category:"国内科技"},
+{id:"geekpark",title:"极客公园",url:"https://www.geekpark.net/rss",category:"国内科技"},
+{id:"36kr",title:"36氪(综合)",url:"https://36kr.com/feed",category:"国内科技"},
+{id:"36kr_newsflash",title:"36氪(快讯)",url:"https://36kr.com/feed-newsflash",category:"国内科技"},
+{id:"mydrivers_hw",title:"快科技全硬件评测",url:"https://rss.mydrivers.com/Rss.aspx?chid=2&Tid=2",category:"国内科技"},
+{id:"mydrivers_phone",title:"快科技手机通讯",url:"https://rss.mydrivers.com/Rss.aspx?chid=2&cid=3",category:"国内科技"},
+{id:"hnrss",title:"Hacker News",url:"https://news.ycombinator.com/rss",category:"开发社区"},
+{id:"v2ex_hot",title:"V2EX热榜",url:"https://www.v2ex.com/feed/tab/hot.xml",category:"开发社区"},
+{id:"ruanyifeng",title:"阮一峰日志",url:"http://www.ruanyifeng.com/blog/atom.xml",category:"开发社区"},
+{id:"coolshell",title:"酷壳 CoolShell",url:"https://coolshell.cn/feed",category:"开发社区"},
+{id:"cloudflare_blog",title:"Cloudflare官方博客",url:"https://blog.cloudflare.com/rss/",category:"开发社区"},
+{id:"swift_blog",title:"Swift官方博客",url:"https://www.swift.org/atom.xml",category:"开发社区"},
+{id:"python_cat",title:"Python潮流周刊",url:"https://pythoncat.top/rss.xml",category:"开发社区"},
+{id:"mdn_weekly",title:"MDN前端周刊",url:"https://mdhweekly.com/rss.xml",category:"开发社区"},
+{id:"arxiv_ai",title:"ArXiv人工智能论文",url:"https://rss.arxiv.org/rss/cs.AI",category:"开发社区"},
+{id:"techcrunch",title:"TechCrunch",url:"https://techcrunch.com/feed/",category:"英文资讯"},
+{id:"theverge",title:"The Verge",url:"https://www.theverge.com/rss/index.xml",category:"英文资讯"},
+{id:"arstechnica",title:"Ars Technica",url:"https://feeds.arstechnica.com/arstechnica/index",category:"英文资讯"},
+{id:"tomshardware",title:"Tom's Hardware",url:"https://tomshardware.com/feeds.xml",category:"英文资讯"},
+{id:"androidauthority",title:"Android Authority",url:"https://feed.androidauthority.com",category:"英文资讯"},
+{id:"engadget_reviews",title:"Engadget评测",url:"https://www.engadget.com/reviews/rss.xml",category:"英文资讯"},
+{id:"ifeng_head",title:"凤凰财经头条",url:"http://finance.ifeng.com/rss/headnews.xml",category:"国内财经"},
+{id:"ifeng_stock",title:"凤凰股市资讯",url:"http://finance.ifeng.com/rss/stocknews.xml",category:"国内财经"},
+{id:"ifeng_fund",title:"凤凰基金理财",url:"http://finance.ifeng.com/rss/fundnews.xml",category:"国内财经"},
+{id:"baidu_fin",title:"百度财经焦点",url:"http://news.baidu.com/n?cmd=1&class=finannews&tn=rss&sub=0",category:"国内财经"},
+{id:"cnbc",title:"CNBC全球财经",url:"https://www.cnbc.com/rss/",category:"海外财经"},
+{id:"wolfstreet",title:"Wolf Street",url:"https://wolfstreet.com/feed",category:"海外财经"},
+{id:"kitco",title:"Kitco贵金属",url:"https://www.kitco.com/feed",category:"海外财经"},
+{id:"chinadaily",title:"China Daily英文",url:"https://www.chinadaily.com.cn/rss/china_rss.xml",category:"综合时政资讯"},
+{id:"baidu_shizheng",title:"百度国内时政",url:"http://news.baidu.com/n?cmd=1&class=shizheng&tn=rss&sub=0",category:"综合时政资讯"},
+{id:"baidu_internews",title:"百度国际新闻",url:"http://news.baidu.com/n?cmd=1&class=internews&tn=rss&sub=0",category:"综合时政资讯"}
+]];
 
 function save(){
     localStorage.setItem(STORAGE_FEEDS,JSON.stringify(feeds));
@@ -254,75 +279,15 @@ function openArticle(art){
     header.style.display="flex";
     body.style.display="block";
     document.getElementById("detailTitle").textContent=art.title;
-    body.innerHTML=`<div class="spinner"><i class="fas fa-spinner"></i><p>正在加载文章...</p></div>`;
-    // Try proxy to fetch full article content
-    const proxyUrl="https://api.allorigins.win/raw?url="+encodeURIComponent(art.link);
-    fetch(proxyUrl).then(r=>{
-        if(!r.ok) throw new Error("proxy failed");
-        return r.text();
-    }).then(html=>{
-        return extractArticle(html,art);
-    }).then(articleHtml=>{
-        if(articleHtml){
-            body.innerHTML=buildArticleHtml(art,articleHtml);
-        } else {
-            // Fallback to description
-            let fallback=art.description||art.content||"";
-            if(art.enclosure&&art.enclosure.link){
-                fallback=`<img src="${esc(art.enclosure.link)}" onerror="this.style.display='none'">`+fallback;
-            }
-            body.innerHTML=buildArticleHtml(art,fallback);
-        }
-    }).catch(err=>{
-        console.error("Fetch error:",err);
-        let fallback=art.description||art.content||"";
-        if(art.enclosure&&art.enclosure.link){
-            fallback=`<img src="${esc(art.enclosure.link)}" onerror="this.style.display='none'">`+fallback;
-        }
-        body.innerHTML=buildArticleHtml(art,fallback);
-    });
-}
-
-function extractArticle(html,art){
-    const parser=new DOMParser();
-    const doc=parser.parseFromString(html,"text/html");
-    // Remove unwanted elements
-    doc.querySelectorAll("script,style,nav,footer,.sidebar,.ad,.ads,.social-share,.comments,iframe,noscript,.cookie,.banner,.popup").forEach(el=>el.remove());
-    // Find main content
-    let contentEl=null;
-    const selectors=["#article-body","#article-content","#post-content","#post_content",".article-body",".post-content",".entry-content","#content-main","#content","#article","#post","article","main"];
-    for(const sel of selectors){
-        contentEl=doc.querySelector(sel);
-        if(contentEl) break;
+    let content="";
+    if(art.enclosure&&art.enclosure.link){
+        content+=`<img src="${esc(art.enclosure.link)}" onerror="this.style.display='none'">`;
     }
-    if(!contentEl){
-        // Fallback: find the largest text container
-        const containers=doc.querySelectorAll("div,section,article,main,p");
-        let maxLen=0;
-        containers.forEach(el=>{
-            const textLen=el.textContent.trim().length;
-            if(textLen>maxLen && textLen>300){
-                maxLen=textLen;
-                contentEl=el;
-            }
-        });
-    }
-    if(!contentEl) contentEl=doc.body;
-    // Convert relative URLs to absolute
-    const base=new URL(art.link);
-    contentEl.querySelectorAll("img[src]").forEach(img=>{
-        try{img.src=new URL(img.src,base).href;}catch(e){}
-    });
-    contentEl.querySelectorAll("a[href]").forEach(a=>{
-        try{a.href=new URL(a.href,base).href;}catch(e){}
-    });
-    return contentEl.innerHTML;
+    if(art.description) content+=art.description;
+    if(art.content&&art.content!==art.description) content+=art.content;
+    body.innerHTML=`<h1>${esc(art.title)}</h1><div class="db-meta"><span><i class="fas fa-newspaper"></i> ${esc(art.feedTitle||"")}</span><span><i class="far fa-clock"></i> ${timeAgo(art.pubDate)}</span></div><div class="db-content">${content}</div><div class="db-source-link"><a href="${esc(art.link)}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 访问原文</a></div>`;
+    panel.classList.add("open");
 }
-
-function buildArticleHtml(art,html){
-    return `<h1>${esc(art.title)}</h1><div class="db-meta"><span><i class="fas fa-newspaper"></i> ${esc(art.feedTitle||"")}</span><span><i class="far fa-clock"></i> ${timeAgo(art.pubDate)}</span></div><div class="db-content">${html}</div><div class="db-source-link"><a href="${esc(art.link)}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 访问原文</a></div>`;
-}
-
 function closeArticle(){
     document.getElementById("detailPanel").classList.remove("open");
     document.getElementById("detailHeader").style.display="none";
