@@ -3,27 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RSSTitle</title>
+<title>Glenman阅读器</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 
 :root {
-    --sidebar-w: 280px; --detail-w: 0px; --bg: #f5f5f7; --sidebar-bg: #fff;
-    --card-bg: #fff; --text: #1d1d1f; --text2: #6e6e73;
+    --sidebar-w: 220px; --sidebar-collapsed-w: 56px; --detail-w: 0px;
+    --bg: #f5f5f7; --sidebar-bg: #fff; --card-bg: #fff;
+    --text: #1d1d1f; --text2: #6e6e73;
     --accent: #007aff; --border: #e5e5ea; --hover: #f0f0f5;
     --danger: #ff3b30; --success: #34c759;
+    --content-bg: #ffffff; --modal-bg: #ffffff; --modal-shadow: rgba(0,0,0,.2);
+}
+/* 深色模式 */
+body.theme-dark {
+    --bg: #1c1c1e; --sidebar-bg: #2c2c2e; --card-bg: #2c2c2e;
+    --text: #f2f2f7; --text2: #a1a1a6;
+    --accent: #0a84ff; --border: #3a3a3c; --hover: #3a3a3c;
+    --danger: #ff453a; --success: #32d74b;
+    --content-bg: #2c2c2e; --modal-bg: #2c2c2e; --modal-shadow: rgba(0,0,0,.6);
+}
+/* 护眼模式（豆沙绿） */
+body.theme-eye {
+    --bg: #c7edcc; --sidebar-bg: #d4f0d8; --card-bg: #e0f5e3;
+    --text: #1f3b2d; --text2: #547664;
+    --accent: #2d8f5f; --border: #a8d8b0; --hover: #b8e3be;
+    --danger: #cc4b37; --success: #3a9d60;
+    --content-bg: #e0f5e3; --modal-bg: #e0f5e3; --modal-shadow: rgba(31,59,45,.2);
+}
+/* 纸质/棕褐色模式 */
+body.theme-paper {
+    --bg: #f4ecd8; --sidebar-bg: #efe4c9; --card-bg: #f9f2df;
+    --text: #3d2b1f; --text2: #7a6652;
+    --accent: #8b5a2b; --border: #d9c9a6; --hover: #eadfbf;
+    --danger: #b04a3a; --success: #6b8e4e;
+    --content-bg: #f9f2df; --modal-bg: #f9f2df; --modal-shadow: rgba(61,43,31,.2);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica Neue,Arial,sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; }
 .app { display:flex; height:100vh; }
-.sidebar { width:var(--sidebar-w); min-width:var(--sidebar-w); background:var(--sidebar-bg); border-right:1px solid var(--border); display:flex; flex-direction:column; transition:transform .3s; z-index:100; }
-.sidebar-header { display:flex; align-items:center; padding:12px 16px; gap:8px; border-bottom:1px solid var(--border); }
-.sidebar-header span { font-size:16px; font-weight:700; flex:1; }
+.sidebar { width:var(--sidebar-w); min-width:var(--sidebar-w); background:var(--sidebar-bg); border-right:1px solid var(--border); display:flex; flex-direction:column; transition:width .3s ease,min-width .3s ease; }
+.sidebar.collapsed { width:var(--sidebar-collapsed-w); min-width:var(--sidebar-collapsed-w); overflow:hidden; }
+.sidebar-header { display:flex; align-items:center; padding:12px 16px; gap:8px; border-bottom:1px solid var(--border); transition:padding .3s; }
+.sidebar.collapsed .sidebar-header { padding:12px; justify-content:center; }
+.sidebar-header span { font-size:16px; font-weight:700; flex:1; transition:opacity .2s; white-space:nowrap; }
+.sidebar.collapsed .sidebar-header span { opacity:0; flex:0; width:0; overflow:hidden; }
+.sidebar.collapsed .sidebar-search { display:none; }
+.sidebar-search { padding:8px 12px; }
+.sidebar-search input { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:var(--hover); color:var(--text); font-size:13px; outline:none; transition:border-color .2s; }
+.sidebar-search input:focus { border-color:var(--accent); }
+.sidebar-search input::placeholder { color:var(--text2); }
+.sidebar.collapsed .feed-list-wrap { opacity:0; pointer-events:none; }
+.sidebar.collapsed #addFeedBtn { display:none; }
+#toggleSidebarBtn i { transition:transform .3s; }
+.sidebar.collapsed #toggleSidebarBtn i { transform:rotate(180deg); }
+.article-search { padding:6px 12px; border:1px solid var(--border); border-radius:8px; background:var(--hover); color:var(--text); font-size:13px; outline:none; width:200px; transition:border-color .2s,width .2s; }
+.article-search:focus { border-color:var(--accent); width:250px; }
+.article-search::placeholder { color:var(--text2); }
 .btn-icon { width:32px; height:32px; border-radius:50%; border:none; background:var(--hover); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:14px; transition:background .15s; }
 .btn-icon:hover { background:var(--border); }
+.theme-switch { display:flex; align-items:center; gap:4px; padding:2px 6px; border-radius:18px; background:var(--hover); }
+.theme-switch .theme-btn { background:transparent; width:28px; height:28px; font-size:12px; color:var(--text2); opacity:.6; }
+.theme-switch .theme-btn:hover { background:var(--border); color:var(--text); opacity:1; }
+.theme-switch .theme-btn.active { color:var(--accent); opacity:1; }
 .feed-list-wrap { flex:1; overflow-y:auto; padding:8px 0; }
 .cat-header { display:flex; align-items:center; padding:10px 16px 4px; cursor:pointer; }
-.cat-header span { font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text2); letter-spacing:.5px; flex:1; }
+.cat-header span { font-size:13px; font-weight:600; color:var(--text2); flex:1; }
 .cat-header .chev { font-size:10px; color:var(--text2); transition:transform .2s; }
 .cat-header.open .chev { transform:rotate(90deg); }
 .feed-items { display:none; }
@@ -31,7 +76,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .feed-item { display:flex; align-items:center; padding:8px 16px; cursor:pointer; gap:10px; transition:background .1s; }
 .feed-item:hover { background:var(--hover); }
 .feed-item.active { background:var(--hover); border-right:3px solid var(--accent); }
-.feed-item .fi-name { flex:1; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.feed-item .fi-name { flex:1; font-size:12px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .feed-item .fi-count { font-size:10px; font-weight:700; min-width:20px; height:18px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:var(--accent); color:#fff; padding:0 5px; }
 .feed-item .fi-count.empty { background:var(--border); color:var(--text2); }
 .feed-item .fi-actions { display:none; gap:2px; margin-left:auto; }
@@ -55,12 +100,30 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .article-card .ac-src { color:var(--accent); font-weight:600; }
 .welcome { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; padding:40px; color:var(--text2); }
 .welcome i { font-size:48px; color:var(--border); margin-bottom:16px; }
+.hot-topics { padding:24px; height:100%; overflow-y:auto; }
+.hot-title { font-size:18px; color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+.hot-title i { color:#ff6b6b; }
+.bubble-container { position:relative; min-height:500px; padding:20px; overflow:hidden; }
+.hot-bubble { position:absolute; border-radius:50%; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px; cursor:pointer; text-align:center; overflow:hidden; animation:bubbleFloatUp linear infinite; box-shadow:0 4px 15px rgba(0,0,0,0.15); opacity:0; }
+.hot-bubble:hover { animation-play-state:paused; transform:scale(1.1); box-shadow:0 8px 25px rgba(0,0,0,0.25); }
+.hot-bubble .bubble-title { font-weight:700; line-height:1.2; text-align:center; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; text-shadow:0 1px 2px rgba(0,0,0,0.3); }
+.hot-bubble .bubble-source { font-size:0.8em; opacity:0.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90%; }
+.hot-bubble .bubble-time { font-size:0.7em; opacity:0.7; margin-top:2px; }
+@keyframes bubbleFloatUp {
+    0% { opacity:0; transform:scale(0.3); bottom:-150px; }
+    5% { opacity:1; }
+    10% { transform:scale(0.6); }
+    50% { transform:scale(1); }
+    90% { opacity:1; }
+    95% { opacity:0.5; bottom:calc(100% - 50px); }
+    100% { opacity:0; transform:scale(1.1); bottom:calc(100% + 50px); }
+}
 .welcome h2 { font-size:20px; color:var(--text); margin-bottom:8px; }
 .spinner { text-align:center; padding:40px; color:var(--text2); }
 .spinner i { font-size:24px; animation:spin 1s linear infinite; display:block; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .detail-panel { width:var(--detail-w); min-width:var(--detail-w); background:var(--card-bg); overflow-y:auto; transition:width .25s ease,min-width .25s ease; display:flex; flex-direction:column; }
-.detail-panel.open { width:45%; min-width:45%; }
+.detail-panel.open { flex:1; min-width:320px; max-width:60%; }
 .detail-header { display:flex; align-items:center; padding:12px 20px; gap:8px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card-bg); z-index:10; }
 .detail-header .dh-title { font-size:14px; font-weight:600; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .detail-body { padding:24px; flex:1; overflow-y:auto; }
@@ -79,13 +142,16 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .detail-body .db-content ul, .detail-body .db-content ol { padding-left:24px; margin:12px 0; }
 .detail-body .db-content code { background:#f0f0f5; padding:2px 6px; border-radius:4px; font-size:14px; }
 .detail-body .db-content pre { background:#1d1d1f; color:#f5f5f7; padding:16px; border-radius:8px; overflow-x:auto; margin:16px 0; }
+body.theme-dark .detail-body .db-content pre { background:#0f0f10; }
+body.theme-eye .detail-body .db-content pre { background:#1f3b2d; color:#d4f0d8; }
+body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd8; }
 .detail-body .db-content pre code { background:transparent; color:inherit; padding:0; }
 .detail-body .db-source-link { margin-top:24px; padding-top:16px; border-top:1px solid var(--border); }
 .detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text2); padding:40px; text-align:center; }
 .detail-empty i { font-size:40px; color:var(--border); margin-bottom:12px; }
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; align-items:center; justify-content:center; }
 .modal-overlay.show { display:flex; }
-.modal { background:var(--card-bg); border-radius:16px; padding:24px; width:90%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,.2); animation:modalIn .2s ease; }
+.modal { background:var(--modal-bg); border-radius:16px; padding:24px; width:90%; max-width:400px; box-shadow:0 20px 60px var(--modal-shadow); animation:modalIn .2s ease; }
 @keyframes modalIn { from { transform:translateY(20px); opacity:0; } }
 .modal h3 { margin-bottom:16px; font-size:18px; }
 .modal label { display:block; font-size:13px; font-weight:600; color:var(--text2); margin-bottom:4px; }
@@ -106,22 +172,34 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 <div class="app">
 <div class="sidebar" id="sidebar">
 <div class="sidebar-header">
-<span>RSSTitle</span>
+<button class="btn-icon" id="toggleSidebarBtn" title="折叠/展开"><i class="fas fa-angle-left"></i></button>
+<span>主题分类</span>
 <button class="btn-icon" id="addFeedBtn" title="添加订阅源"><i class="fas fa-plus"></i></button>
+</div>
+<div class="sidebar-search">
+<input type="text" id="searchFeeds" placeholder="搜索订阅源..." />
 </div>
 <div class="feed-list-wrap" id="feedList"></div>
 </div>
 <div class="main">
 <div class="content-header">
 <button class="btn-icon hamburger" id="menuBtn"><i class="fas fa-bars"></i></button>
-<span id="contentTitle">RSSTitle</span>
+<span id="contentTitle">Glenman阅读器</span>
+<button class="btn-icon" id="backToHomeBtn" title="回到首页" style="display:none"><i class="fas fa-home"></i></button>
+<div class="theme-switch" id="themeSwitch" title="切换主题">
+<button class="btn-icon theme-btn" data-theme="light" title="日间"><i class="fas fa-sun"></i></button>
+<button class="btn-icon theme-btn" data-theme="dark" title="夜间"><i class="fas fa-moon"></i></button>
+<button class="btn-icon theme-btn" data-theme="eye" title="护眼"><i class="fas fa-leaf"></i></button>
+<button class="btn-icon theme-btn" data-theme="paper" title="纸质"><i class="fas fa-scroll"></i></button>
+</div>
+<input type="text" id="searchArticles" class="article-search" placeholder="搜索新闻标题..." />
 <button class="btn-icon" id="refreshBtn" title="刷新"><i class="fas fa-sync-alt"></i></button>
 </div>
 <div class="body-wrap">
 <div class="articles-wrap" id="articlesWrap">
 <div class="welcome">
 <i class="fas fa-rss"></i>
-<h2>Welcome to RSS Reader</h2>
+<h2>Welcome to Glenman阅读器</h2>
 <p>Select a feed from the sidebar or add a new one.</p>
 </div>
 </div>
@@ -200,7 +278,7 @@ const DEFAULT_FEEDS=[
 {id:"chinadaily",title:"China Daily英文",url:"https://www.chinadaily.com.cn/rss/china_rss.xml",category:"综合时政资讯"},
 {id:"baidu_shizheng",title:"百度国内时政",url:"http://news.baidu.com/n?cmd=1&class=shizheng&tn=rss&sub=0",category:"综合时政资讯"},
 {id:"baidu_internews",title:"百度国际新闻",url:"http://news.baidu.com/n?cmd=1&class=internews&tn=rss&sub=0",category:"综合时政资讯"}
-]];
+];
 
 function save(){
     localStorage.setItem(STORAGE_FEEDS,JSON.stringify(feeds));
@@ -224,7 +302,7 @@ function load(){
     articles=JSON.parse(localStorage.getItem(STORAGE_ARTICLES)||"[]");
     readIds=new Set(JSON.parse(localStorage.getItem(STORAGE_READ)||"[]"));
     if(!feeds.length){feeds=DEFAULT_FEEDS;save();}
-    renderFeedList();updateStats();
+    renderFeedList();renderArticles();updateStats();
 }
 
 function renderFeedList(){
@@ -243,19 +321,109 @@ function renderFeedList(){
     document.querySelectorAll(".feed-item").forEach(el=>{el.addEventListener("click",()=>selectFeed(el.dataset.id));});
 }
 
+let searchQuery="";
+
+function filterFeeds(){
+    searchQuery=document.getElementById("searchFeeds").value.toLowerCase().trim();
+    renderFeedList();
+}
+
+function renderFeedList(){
+    const cats={};
+    const filteredFeeds=searchQuery?feeds.filter(f=>f.title.toLowerCase().includes(searchQuery)):feeds;
+    filteredFeeds.forEach(f=>{if(!cats[f.category])cats[f.category]=[];cats[f.category].push(f);});
+    let h="";
+    for(const[cat,items]of Object.entries(cats)){
+        h+=`<div class="cat-header" data-cat="${cat}"><span>${cat}</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="${cat}">`;
+        items.forEach(f=>{
+            const c=unreadCount(f.id),act=f.id===currentFeedId?" active":"";
+            h+=`<div class="feed-item${act}" data-id="${f.id}"><span class="fi-name">${esc(f.title)}</span><span class="fi-count ${c?'':'empty'}">${c||''}</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('${f.id}')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('${f.id}')"><i class="fas fa-trash"></i></button></div></div>`;
+        });
+        h+="</div>";
+    }
+    document.getElementById("feedList").innerHTML=h;
+    document.querySelectorAll(".cat-header").forEach(el=>{el.addEventListener("click",()=>{el.classList.toggle("open");el.nextElementSibling.classList.toggle("open");});});
+    document.querySelectorAll(".feed-item").forEach(el=>{el.addEventListener("click",()=>selectFeed(el.dataset.id));});
+}
+
 function selectFeed(fid){
     currentFeedId=fid;
     const f=feeds.find(x=>x.id===fid);
-    document.getElementById("contentTitle").textContent=f?f.title:"RSS Reader";
+    document.getElementById("contentTitle").textContent=f?f.title:"Glenman阅读器";
     renderArticles();renderFeedList();
     if(window.innerWidth<=768)document.getElementById("sidebar").classList.remove("open");
 }
 
+let articleSearchQuery="";
+
+function filterArticles(){
+    articleSearchQuery=document.getElementById("searchArticles").value.toLowerCase().trim();
+    renderArticles();
+}
+
 function renderArticles(){
     const wrap=document.getElementById("articlesWrap");
-    if(!currentFeedId){wrap.innerHTML='<div class="welcome"><i class="fas fa-rss"></i><h2>Select a Feed</h2><p>Choose a feed from the sidebar.</p></div>';return;}
-    const fa=articles.filter(a=>a.feedId===currentFeedId).sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
-    if(!fa.length){wrap.innerHTML='<div class="spinner"><i class="fas fa-spinner"></i><p>No articles. Click refresh to fetch.</p></div>';return;}
+    if(!currentFeedId){
+        // 显示热点头条气泡 - 优先显示未读，没有未读则显示所有文章
+        const displayArticles=articles.filter(a=>!readIds.has(a.id)).length>0
+            ? articles.filter(a=>!readIds.has(a.id))
+            : articles;
+        const hotArticles=displayArticles.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate)).slice(0,8);
+        if(hotArticles.length){
+            const allUnread=articles.filter(a=>!readIds.has(a.id)).length;
+            const unreadCount=articles.filter(a=>!readIds.has(a.id)).length;
+            let h='<div class="hot-topics"><h2 class="hot-title"><i class="fas fa-fire"></i> 热点速递</h2>';
+            if(unreadCount>0) h+='<p class="hot-subtitle">'+unreadCount+' 篇未读</p>';
+            h+='<div class="bubble-container">';
+            const colors=[
+                {bg:"#7c9eb2",text:"#fff"},{bg:"#a8b5a0",text:"#fff"},{bg:"#b5a08a",text:"#fff"},
+                {bg:"#9b8aa8",text:"#fff"},{bg:"#8a9ba0",text:"#fff"},{bg:"#a09080",text:"#fff"},
+                {bg:"#7d9b8a",text:"#fff"},{bg:"#8a8a9b",text:"#fff"},{bg:"#9b9b8a",text:"#fff"},
+                {bg:"#8a9b9b",text:"#fff"},{bg:"#9b8a9b",text:"#fff"},{bg:"#a0a080",text:"#fff"}
+            ];
+            const maxLeft=85;
+            const usedPositions=[];
+            hotArticles.forEach((a,i)=>{
+                const size=Math.max(60,Math.min(100,65+Math.random()*35));
+                const color=colors[i%colors.length];
+                let left;
+                let attempts=0;
+                const minSpacing=8; // 最小间距百分比
+                do{
+                    left=5+Math.random()*maxLeft;
+                    attempts++;
+                } while(attempts<20&&usedPositions.some(pos=>Math.abs(pos-left)<minSpacing));
+                usedPositions.push(left);
+                const duration=15+Math.random()*10;
+                const delay=Math.random()*15;
+                const feed=feeds.find(f=>f.id===a.feedId);
+                h+=`<div class="hot-bubble" data-id="${a.id}" style="width:${size}px;height:${size}px;font-size:${Math.max(12,size/8)}px;background:${color.bg};color:${color.text};left:${left}%;bottom:-${size}px;animation-delay:${delay}s;animation-duration:${duration}s">
+                    <span class="bubble-title">${esc(a.title.slice(0,12))}</span>
+                </div>`;
+            });
+            h+='</div></div>';
+            wrap.innerHTML=h;
+            wrap.querySelectorAll(".hot-bubble").forEach(el=>{
+                el.addEventListener("click",()=>{
+                    const art=articles.find(a=>a.id===el.dataset.id);
+                    if(art){readIds.add(art.id);save();renderArticles();renderFeedList();openArticle(art);}
+                });
+            });
+        } else {
+            wrap.innerHTML='<div class="welcome"><i class="fas fa-rss"></i><h2>Welcome to Glenman阅读器</h2><p>Select a feed from the sidebar or click refresh to load articles.</p></div>';
+        }
+        return;
+    }
+    let fa=articles.filter(a=>a.feedId===currentFeedId);
+    if(articleSearchQuery){
+        fa=fa.filter(a=>a.title.toLowerCase().includes(articleSearchQuery));
+    }
+    fa=fa.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+    if(!fa.length){
+        const msg=articleSearchQuery?'<p>No articles found matching your search.</p>':'<p>No articles. Click refresh to fetch.</p>';
+        wrap.innerHTML='<div class="spinner"><i class="fas fa-spinner"></i>'+msg+'</div>';
+        return;
+    }
     let h="";
     fa.forEach(a=>{
         const rd=readIds.has(a.id);
@@ -297,8 +465,11 @@ function closeArticle(){
 
 function updateStats(){
     const total=articles.length,unread=articles.filter(a=>!readIds.has(a.id)).length;
-    const title=currentFeedId?(feeds.find(f=>f.id===currentFeedId)||{}).title||"RSS Reader":"RSS Reader ("+total+" articles, "+unread+" unread)";
+    const title=currentFeedId?(feeds.find(f=>f.id===currentFeedId)||{}).title||"Glenman阅读器":"Glenman阅读器 ("+total+" articles, "+unread+" unread)";
     document.getElementById("contentTitle").textContent=title;
+    // Show/hide back to home button
+    const backBtn=document.getElementById("backToHomeBtn");
+    if(backBtn) backBtn.style.display=currentFeedId?"flex":"none";
 }
 
 async function fetchFeed(feed){
@@ -332,7 +503,7 @@ async function refreshFeeds(){
 function deleteFeed(id){
     if(!confirm("Delete this feed?"))return;
     feeds=feeds.filter(f=>f.id!==id);save();
-    if(currentFeedId===id){currentFeedId=null;document.getElementById("contentTitle").textContent="RSS Reader";}
+    if(currentFeedId===id){currentFeedId=null;document.getElementById("contentTitle").textContent="Glenman阅读器";}
     renderFeedList();renderArticles();updateStats();
 }
 
@@ -362,12 +533,65 @@ document.getElementById("addFeedForm").addEventListener("submit",async e=>{
     toast("Feed added");
 });
 
-document.getElementById("menuBtn").addEventListener("click",()=>{document.getElementById("sidebar").classList.toggle("open");});
+document.getElementById("menuBtn").addEventListener("click",()=>{document.getElementById("sidebar").classList.toggle("open");document.getElementById("sidebar").classList.toggle("pinned");});
 document.getElementById("refreshBtn").addEventListener("click",refreshFeeds);
 document.getElementById("closeDetailBtn").addEventListener("click",closeArticle);
 
+// Theme switching
+(function(){
+    const THEMES=["light","dark","eye","paper"];
+    const CLASS_MAP={dark:"theme-dark",eye:"theme-eye",paper:"theme-paper"};
+    const STORAGE_KEY="rss_theme";
+    function apply(theme){
+        if(!THEMES.includes(theme)) theme="light";
+        Object.values(CLASS_MAP).forEach(c=> document.body.classList.remove(c));
+        if(CLASS_MAP[theme]) document.body.classList.add(CLASS_MAP[theme]);
+        document.querySelectorAll(".theme-btn").forEach(b=>{
+            b.classList.toggle("active", b.dataset.theme===theme);
+        });
+        try{ localStorage.setItem(STORAGE_KEY,theme);}catch(e){}
+    }
+    document.querySelectorAll(".theme-btn").forEach(b=>{
+        b.addEventListener("click",()=> apply(b.dataset.theme));
+    });
+    const saved = (()=>{try{return localStorage.getItem(STORAGE_KEY);}catch(e){return null;}})();
+    apply(saved||"light");
+})();
+
+// Sidebar auto-collapse on desktop: hover to expand, auto hide when mouse leaves
+(function(){
+    const sb = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleSidebarBtn");
+    const isMobile = ()=> window.innerWidth <= 768;
+    let hideTimer = null;
+    function expand(){ if(isMobile()) return; sb.classList.remove("collapsed"); if(hideTimer){ clearTimeout(hideTimer); hideTimer=null; } }
+    function collapse(){ if(isMobile()) return; sb.classList.add("collapsed"); }
+    function scheduleCollapse(){ if(isMobile()) return; if(sb.classList.contains("pinned")) return; if(hideTimer) return; hideTimer = setTimeout(()=> sb.classList.add("collapsed"), 600); }
+    sb.addEventListener("mouseenter", expand);
+    sb.addEventListener("mouseleave", scheduleCollapse);
+    // toggle button: click to expand/collapse, when expanded set pinned to prevent auto-hide
+    toggleBtn.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        if(sb.classList.contains("collapsed")){
+            sb.classList.remove("collapsed");
+            sb.classList.add("pinned");
+        } else {
+            sb.classList.add("collapsed");
+            sb.classList.remove("pinned");
+        }
+    });
+    // start collapsed on desktop
+    if(!isMobile()){ sb.classList.add("collapsed"); scheduleCollapse(); }
+})();
+
 // Close modal on overlay click
 document.getElementById("addFeedModal").addEventListener("click",function(e){if(e.target===this)this.classList.remove("show");});
+// Search feeds
+document.getElementById("searchFeeds").addEventListener("input", filterFeeds);
+// Search articles
+document.getElementById("searchArticles").addEventListener("input", filterArticles);
+// Back to home button
+document.getElementById("backToHomeBtn").addEventListener("click",()=>{currentFeedId=null;document.getElementById("contentTitle").textContent="Glenman阅读器";renderArticles();renderFeedList();});
 
 load();
 if(feeds.length)setTimeout(refreshFeeds,500);
