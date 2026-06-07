@@ -46,7 +46,8 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .sidebar.collapsed { width:var(--sidebar-collapsed-w); min-width:var(--sidebar-collapsed-w); overflow:hidden; }
 .sidebar-header { display:flex; align-items:center; padding:16px; gap:12px; border-bottom:1px solid var(--border); background:var(--card-bg); }
 .sidebar.collapsed .sidebar-header { padding:12px; justify-content:center; }
-.sidebar-header #toggleSidebarBtn { margin-left:-4px; }
+.sidebar-header #toggleSidebarBtn { margin-left:-4px; flex-shrink:0; }
+.sidebar.collapsed .sidebar-header #toggleSidebarBtn { margin-left:0; }
 .sidebar-header span { font-size:15px; font-weight:600; flex:1; transition:opacity .2s,width .2s; white-space:nowrap; }
 .sidebar.collapsed .sidebar-header span { opacity:0; flex:0; width:0; overflow:hidden; }
 .sidebar.collapsed .sidebar-search { display:none; }
@@ -54,10 +55,23 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .sidebar-search input { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:var(--hover); color:var(--text); font-size:13px; outline:none; transition:border-color .2s; }
 .sidebar-search input:focus { border-color:var(--accent); }
 .sidebar-search input::placeholder { color:var(--text2); }
-.sidebar.collapsed .feed-list-wrap { opacity:0; pointer-events:none; }
+.sidebar.collapsed .cat-header { padding:12px 0; justify-content:center; gap:0; }
+.sidebar.collapsed .cat-header .cat-icon { width:32px; height:32px; font-size:16px; }
+.sidebar.collapsed .cat-header span { display:none; }
+.sidebar.collapsed .cat-header .chev { display:none; }
 .sidebar.collapsed #addFeedBtn { display:none; }
-#toggleSidebarBtn i { transition:transform .3s; }
-.sidebar.collapsed #toggleSidebarBtn i { transform:rotate(180deg); }
+/* Collapsed state category expand */
+.sidebar.collapsed .feed-items { display:none; }
+.sidebar.collapsed .cat-header.active { background:var(--hover); }
+.sidebar.collapsed .cat-header.active .cat-icon { background:var(--accent); color:#fff; border-radius:8px; }
+.sidebar.collapsed .cat-header.active + .feed-items { display:block; }
+.sidebar.collapsed .feed-item { padding:6px 4px; justify-content:center; }
+.feed-item .fi-short { display:none; }
+.sidebar.collapsed .feed-item .fi-short { display:block; font-size:10px; font-weight:700; color:var(--text); }
+.sidebar.collapsed .feed-item .fi-name { display:none; }
+.sidebar.collapsed .feed-item .fi-count { display:none; }
+.sidebar.collapsed .feed-item .fi-actions { display:none; }
+#toggleSidebarBtn i { transition:transform .3s; font-size:15px; }
 .article-search { padding:6px 12px; border:1px solid var(--border); border-radius:8px; background:var(--hover); color:var(--text); font-size:13px; outline:none; width:200px; transition:border-color .2s,width .2s; }
 .article-search:focus { border-color:var(--accent); width:250px; }
 .article-search::placeholder { color:var(--text2); }
@@ -68,8 +82,9 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .theme-switch .theme-btn:hover { background:var(--border); color:var(--text); opacity:1; }
 .theme-switch .theme-btn.active { color:var(--accent); opacity:1; }
 .feed-list-wrap { flex:1; overflow-y:auto; padding:8px 0; }
-.cat-header { display:flex; align-items:center; padding:10px 16px 4px; cursor:pointer; }
-.cat-header span { font-size:13px; font-weight:600; color:var(--text2); flex:1; }
+.cat-header { display:flex; align-items:center; padding:10px 16px 4px; cursor:pointer; gap:8px; }
+.cat-header .cat-icon { width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--accent); }
+.cat-header span { font-size:13px; font-weight:600; color:var(--text2); flex:1; white-space:nowrap; }
 .cat-header .chev { font-size:10px; color:var(--text2); transition:transform .2s; }
 .cat-header.open .chev { transform:rotate(90deg); }
 .feed-items { display:none; }
@@ -86,7 +101,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .feed-item .fi-actions .del-btn { color:var(--danger); }
 .feed-item .fi-actions .move-btn { color:var(--accent); }
 .feed-item .fi-actions button:hover { background:var(--border); }
-.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:flex-basis .3s ease; }
 .content-header { display:flex; flex-direction:column; padding:0; border-bottom:1px solid var(--border); background:var(--card-bg); }
 .header-row { display:flex; align-items:center; padding:12px 20px; }
 .header-row:first-child { padding-bottom:8px; }
@@ -94,11 +109,11 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .content-header .title-section { display:flex; align-items:center; gap:12px; flex:1; }
 .content-header .title-section #contentTitle { font-size:18px; font-weight:700; color:var(--text); }
 .content-header .header-row:last-child { justify-content:space-between; align-items:center; }
-.content-header .search-section { flex:1; max-width:450px; }
+.content-header .search-section { flex:1; max-width:450px; margin-right:16px; }
 .content-header .search-section .article-search { width:100%; max-width:450px; }
-.content-header .actions-section { display:flex; align-items:center; gap:8px; }
+.content-header .actions-section { display:flex; align-items:center; gap:8px; margin-left:auto; }
 .body-wrap { flex:1; display:flex; overflow:hidden; }
-.articles-wrap { flex:1; overflow-y:auto; border-right:1px solid var(--border); max-width:50%; min-width:280px; }
+.articles-wrap { flex:1; overflow-y:auto; border-right:1px solid var(--border); max-width:50%; min-width:280px; outline:none; }
 .article-card { padding:16px 20px; border-bottom:1px solid var(--border); cursor:pointer; max-width:800px; margin:0 auto; transition:background .1s; }
 .article-card:hover { background:var(--hover); }
 .article-card.unread .ac-title { font-weight:700; color:var(--text); }
@@ -131,7 +146,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .spinner { text-align:center; padding:40px; color:var(--text2); }
 .spinner i { font-size:24px; animation:spin 1s linear infinite; display:block; }
 @keyframes spin { to { transform:rotate(360deg); } }
-.detail-panel { width:var(--detail-w); min-width:var(--detail-w); background:var(--card-bg); overflow-y:auto; transition:width .25s ease,min-width .25s ease; display:flex; flex-direction:column; }
+.detail-panel { width:var(--detail-w); min-width:var(--detail-w); background:var(--card-bg); overflow-y:hidden; transition:width .25s ease,min-width .25s ease; display:flex; flex-direction:column; }
 .detail-panel.open { flex:1; min-width:320px; max-width:60%; }
 .detail-header { display:flex; align-items:center; padding:12px 20px; gap:8px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card-bg); z-index:10; }
 .detail-header .dh-title { font-size:14px; font-weight:600; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -198,7 +213,7 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 <div class="app">
 <div class="sidebar" id="sidebar">
 <div class="sidebar-header">
-<button class="btn-icon" id="toggleSidebarBtn" title="折叠/展开"><i class="fas fa-angle-left"></i></button>
+<button class="btn-icon" id="toggleSidebarBtn" title="折叠/展开"><i class="fas fa-bars"></i></button>
 <span>主题分类</span>
 <button class="btn-icon" id="addFeedBtn" title="添加订阅源"><i class="fas fa-plus"></i></button>
 </div>
@@ -231,7 +246,7 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 </div>
 </div>
 <div class="body-wrap">
-<div class="articles-wrap" id="articlesWrap">
+<div class="articles-wrap" id="articlesWrap" tabindex="0">
 <div class="welcome">
 <i class="fas fa-rss"></i>
 <h2>Welcome to Glenman阅读器</h2>
@@ -247,7 +262,7 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 <button class="btn-icon" id="closeDetailBtn" title="Close"><i class="fas fa-times"></i></button>
 <span class="dh-title" id="detailTitle"></span>
 </div>
-<div class="detail-body" id="detailBody" style="display:none"></div>
+<div class="detail-body" id="detailBody" style="display:none" tabindex="0"></div>
 </div>
 </div>
 </div>
@@ -344,19 +359,76 @@ function renderFeedList(){
     const cats={};feeds.forEach(f=>{if(!cats[f.category])cats[f.category]=[];cats[f.category].push(f);});
     let h="";
     for(const[cat,items]of Object.entries(cats)){
-        h+=`<div class="cat-header" data-cat="${cat}"><span>${cat}</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="${cat}">`;
+        h+=`<div class="cat-header" data-cat="${cat}"><i class="fas ${getCatIcon(cat)} cat-icon"></i><span>${cat}</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="${cat}">`;
         items.forEach(f=>{
             const c=unreadCount(f.id),act=f.id===currentFeedId?" active":"";
-            h+=`<div class="feed-item${act}" data-id="${f.id}"><span class="fi-name">${esc(f.title)}</span><span class="fi-count ${c?'':'empty'}">${c||''}</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('${f.id}')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('${f.id}')"><i class="fas fa-trash"></i></button></div></div>`;
+            h+=`<div class="feed-item${act}" data-id="${f.id}"><span class="fi-short">${getShortName(f.title)}</span><span class="fi-name">${esc(f.title)}</span><span class="fi-count ${c?'':'empty'}">${c||''}</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('${f.id}')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('${f.id}')"><i class="fas fa-trash"></i></button></div></div>`;
         });
         h+="</div>";
     }
     document.getElementById("feedList").innerHTML=h;
-    document.querySelectorAll(".cat-header").forEach(el=>{el.addEventListener("click",()=>{el.classList.toggle("open");el.nextElementSibling.classList.toggle("open");});});
-    document.querySelectorAll(".feed-item").forEach(el=>{el.addEventListener("click",()=>selectFeed(el.dataset.id));});
+    document.querySelectorAll(".cat-header").forEach(el=>{el.addEventListener("click",()=>{
+        const isCollapsed = document.getElementById("sidebar").classList.contains("collapsed");
+        if(isCollapsed){
+            el.classList.toggle("active");
+        } else {
+            el.classList.toggle("open");
+            el.nextElementSibling.classList.toggle("open");
+        }
+    });});
+    document.querySelectorAll(".feed-item").forEach(el=>{el.addEventListener("click",()=>{
+        selectFeed(el.dataset.id);
+    });});
 }
 
 let searchQuery="";
+
+const CATEGORY_ICONS={
+    "国内科技":"fa-microchip",
+    "开发社区":"fa-code",
+    "英文资讯":"fa-globe",
+    "国内财经":"fa-yen-sign",
+    "海外财经":"fa-dollar-sign",
+    "综合时政资讯":"fa-newspaper"
+};
+function getCatIcon(cat){return CATEGORY_ICONS[cat]||"fa-folder";}
+
+const FEED_SHORT_NAMES={
+    "IT之家":"IT",
+    "少数派":"少",
+    "爱范儿":"爱",
+    "极客公园":"极",
+    "36氪(综合)":"氪",
+    "36氪(快讯)":"氪快",
+    "快科技全硬件评测":"快",
+    "快科技手机通讯":"快手",
+    "Hacker News":"HN",
+    "V2EX热榜":"V2",
+    "阮一峰日志":"阮",
+    "酷壳 CoolShell":"酷",
+    "Cloudflare官方博客":"CF",
+    "Swift官方博客":"Sw",
+    "Python潮流周刊":"Py",
+    "MDN前端周刊":"MDN",
+    "ArXiv人工智能论文":"Ar",
+    "TechCrunch":"TC",
+    "The Verge":"Ve",
+    "Ars Technica":"Ars",
+    "Tom's Hardware":"TH",
+    "Android Authority":"AA",
+    "Engadget评测":"En",
+    "凤凰财经头条":"凤",
+    "凤凰股市资讯":"股",
+    "凤凰基金理财":"基",
+    "百度财经焦点":"财",
+    "CNBC全球财经":"CNBC",
+    "Wolf Street":"WS",
+    "Kitco贵金属":"Ki",
+    "China Daily英文":"CD",
+    "百度国内时政":"政",
+    "百度国际新闻":"际"
+};
+function getShortName(name){return FEED_SHORT_NAMES[name]||name.charAt(0);}
 
 function filterFeeds(){
     searchQuery=document.getElementById("searchFeeds").value.toLowerCase().trim();
@@ -369,23 +441,47 @@ function renderFeedList(){
     filteredFeeds.forEach(f=>{if(!cats[f.category])cats[f.category]=[];cats[f.category].push(f);});
     let h="";
     for(const[cat,items]of Object.entries(cats)){
-        h+=`<div class="cat-header" data-cat="${cat}"><span>${cat}</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="${cat}">`;
+        h+=`<div class="cat-header" data-cat="${cat}"><i class="fas ${getCatIcon(cat)} cat-icon"></i><span>${cat}</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="${cat}">`;
         items.forEach(f=>{
             const c=unreadCount(f.id),act=f.id===currentFeedId?" active":"";
-            h+=`<div class="feed-item${act}" data-id="${f.id}"><span class="fi-name">${esc(f.title)}</span><span class="fi-count ${c?'':'empty'}">${c||''}</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('${f.id}')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('${f.id}')"><i class="fas fa-trash"></i></button></div></div>`;
+            h+=`<div class="feed-item${act}" data-id="${f.id}"><span class="fi-short">${getShortName(f.title)}</span><span class="fi-name">${esc(f.title)}</span><span class="fi-count ${c?'':'empty'}">${c||''}</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('${f.id}')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('${f.id}')"><i class="fas fa-trash"></i></button></div></div>`;
         });
         h+="</div>";
     }
     document.getElementById("feedList").innerHTML=h;
-    document.querySelectorAll(".cat-header").forEach(el=>{el.addEventListener("click",()=>{el.classList.toggle("open");el.nextElementSibling.classList.toggle("open");});});
-    document.querySelectorAll(".feed-item").forEach(el=>{el.addEventListener("click",()=>selectFeed(el.dataset.id));});
+    document.querySelectorAll(".cat-header").forEach(el=>{el.addEventListener("click",()=>{
+        const isCollapsed = document.getElementById("sidebar").classList.contains("collapsed");
+        if(isCollapsed){
+            el.classList.toggle("active");
+        } else {
+            el.classList.toggle("open");
+            el.nextElementSibling.classList.toggle("open");
+        }
+    });});
+    document.querySelectorAll(".feed-item").forEach(el=>{el.addEventListener("click",()=>{
+        selectFeed(el.dataset.id);
+    });});
 }
 
 function selectFeed(fid){
     currentFeedId=fid;
     const f=feeds.find(x=>x.id===fid);
     document.getElementById("contentTitle").textContent=f?f.title:"Glenman RSS阅读器";
+    // 保存侧边栏折叠状态和当前展开的分类
+    const sidebar = document.getElementById("sidebar");
+    const isCollapsed = sidebar.classList.contains("collapsed");
+    const activeCat = document.querySelector(".cat-header.active");
+    const activeCatName = activeCat ? activeCat.dataset.cat : null;
     renderArticles();renderFeedList();
+    // 恢复侧边栏折叠状态
+    if(isCollapsed){
+        sidebar.classList.add("collapsed");
+        // 恢复展开的分类
+        if(activeCatName){
+            const catHeader = document.querySelector(`.cat-header[data-cat="${activeCatName}"]`);
+            if(catHeader) catHeader.classList.add("active");
+        }
+    }
     if(window.innerWidth<=768)document.getElementById("sidebar").classList.remove("open");
 }
 
@@ -593,30 +689,32 @@ document.getElementById("closeDetailBtn").addEventListener("click",closeArticle)
     apply(saved||"light");
 })();
 
-// Sidebar auto-collapse on desktop: hover to expand, auto hide when mouse leaves
+// Sidebar toggle: click only, no auto-expand/collapse on hover
 (function(){
     const sb = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleSidebarBtn");
+    const toggleIcon = toggleBtn.querySelector("i");
     const isMobile = ()=> window.innerWidth <= 768;
-    let hideTimer = null;
-    function expand(){ if(isMobile()) return; sb.classList.remove("collapsed"); if(hideTimer){ clearTimeout(hideTimer); hideTimer=null; } }
-    function collapse(){ if(isMobile()) return; sb.classList.add("collapsed"); }
-    function scheduleCollapse(){ if(isMobile()) return; if(sb.classList.contains("pinned")) return; if(hideTimer) return; hideTimer = setTimeout(()=> sb.classList.add("collapsed"), 600); }
-    sb.addEventListener("mouseenter", expand);
-    sb.addEventListener("mouseleave", scheduleCollapse);
-    // toggle button: click to expand/collapse, when expanded set pinned to prevent auto-hide
+    function setIcon(collapsed){
+        if(collapsed){
+            toggleIcon.className="fas fa-indent";
+        } else {
+            toggleIcon.className="fas fa-outdent";
+        }
+    }
+    // toggle button: click to expand/collapse
     toggleBtn.addEventListener("click", (e)=>{
         e.stopPropagation();
         if(sb.classList.contains("collapsed")){
             sb.classList.remove("collapsed");
-            sb.classList.add("pinned");
+            setIcon(false);
         } else {
             sb.classList.add("collapsed");
-            sb.classList.remove("pinned");
+            setIcon(true);
         }
     });
     // start collapsed on desktop
-    if(!isMobile()){ sb.classList.add("collapsed"); scheduleCollapse(); }
+    if(!isMobile()){ sb.classList.add("collapsed"); setIcon(true); }
 })();
 
 // Close modal on overlay click
@@ -627,6 +725,17 @@ document.getElementById("searchFeeds").addEventListener("input", filterFeeds);
 document.getElementById("searchArticles").addEventListener("input", filterArticles);
 // Back to home button
 document.getElementById("backToHomeBtn").addEventListener("click",()=>{currentFeedId=null;document.getElementById("contentTitle").textContent="Glenman RSS阅读器";renderArticles();renderFeedList();});
+
+// Enable keyboard navigation for scrollable areas
+document.getElementById("articlesWrap").addEventListener("click", function(e) {
+    if (e.target === this || e.target.classList.contains("article-card")) {
+        this.focus();
+    }
+});
+
+document.getElementById("detailBody").addEventListener("click", function(e) {
+    this.focus();
+});
 
 load();
 if(feeds.length)setTimeout(refreshFeeds,500);
