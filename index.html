@@ -140,7 +140,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .feed-item .fi-actions .del-btn { color:var(--danger); }
 .feed-item .fi-actions .move-btn { color:var(--accent); }
 .feed-item .fi-actions button:hover { background:var(--border); }
-.main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:flex-basis .3s ease; min-height:0; }
+.main { flex:1; display:flex; flex-direction:column; height:100vh; overflow:hidden; transition:flex-basis .3s ease; }
 .content-header { display:flex; flex-direction:column; padding:0; border-bottom:1px solid var(--border); background:var(--card-bg); flex-shrink:0; }
 .header-row { display:flex; align-items:center; padding:12px 20px; }
 .header-row:first-child { padding-bottom:8px; }
@@ -151,7 +151,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .content-header .search-section { flex:1; max-width:450px; margin-right:16px; }
 .content-header .search-section .article-search { width:100%; max-width:450px; }
 .content-header .actions-section { display:flex; align-items:center; gap:8px; margin-left:auto; }
-.body-wrap { height:100vh; display:flex; overflow:hidden; }
+.body-wrap { flex:1; display:flex; overflow:hidden; min-height:0; }
 #articlesWrap { flex:1; overflow-y:auto; border-right:1px solid var(--border); max-width:50%; min-width:280px; outline:none; height:100%; scrollbar-width:auto; }
 .articles-wrap::-webkit-scrollbar { width:8px; }
 .articles-wrap::-webkit-scrollbar-track { background:transparent; }
@@ -297,6 +297,7 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 <button class="btn-icon theme-btn" data-theme="dark" title="夜间"><i class="fas fa-moon"></i></button>
 <button class="btn-icon theme-btn" data-theme="eye" title="护眼"><i class="fas fa-leaf"></i></button>
 <button class="btn-icon theme-btn" data-theme="paper" title="纸质"><i class="fas fa-scroll"></i></button>
+</div>
 </div>
 </div>
 </div>
