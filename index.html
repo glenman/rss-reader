@@ -1,6 +1,13 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<html lang="zh-CN"><head><style class="vjs-styles-defaults">
+      .video-js {
+        width: 300px;
+        height: 150px;
+      }
+
+      .vjs-fluid:not(.vjs-audio-only-mode) {
+        padding-top: 56.25%
+      }
+    </style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Glenman阅读器</title>
@@ -104,6 +111,9 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .sidebar.collapsed .cat-header.active { background:var(--hover); }
 .sidebar.collapsed .cat-header.active .cat-icon { background:var(--accent); color:#fff; border-radius:8px; }
 .sidebar.collapsed .cat-header.active + .feed-items { display:block; }
+.sidebar.hidden { width:0 !important; min-width:0 !important; overflow:hidden !important; border-right:none !important; }
+.sidebar.hidden ~ .main .hamburger,
+.sidebar-hidden .hamburger { display:flex !important; }
 .sidebar.collapsed .feed-item { padding:6px 4px; justify-content:center; }
 .feed-item .fi-short { display:none; }
 .sidebar.collapsed .feed-item .fi-short { display:block; font-size:10px; font-weight:700; color:var(--text); }
@@ -115,6 +125,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .article-search:focus { border-color:var(--accent); width:250px; }
 .article-search::placeholder { color:var(--text2); }
 .btn-icon { width:32px; height:32px; border-radius:50%; border:none; background:var(--hover); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:14px; transition:background .15s; }
+.hamburger { display:none; }
 .btn-icon:hover { background:var(--border); }
 .theme-switch { display:flex; align-items:center; gap:4px; padding:2px 6px; border-radius:18px; background:var(--hover); }
 .theme-switch .theme-btn { background:transparent; width:28px; height:28px; font-size:12px; color:var(--text2); opacity:.6; }
@@ -232,9 +243,6 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 .toast.show { opacity:1; }
 .spinning i { animation:spin .5s linear infinite !important; }
 @media (max-width:768px) { 
-    .sidebar { position:fixed; left:0; top:0; bottom:0; transform:translateX(-100%); z-index:200; height:100%; height:-webkit-fill-available; } 
-    .sidebar.open { transform:translateX(0); } 
-    .hamburger { display:block; } 
     .detail-panel.open { position:fixed; left:0; right:0; bottom:0; width:100%!important; min-width:100%!important; height:80vh; border-top:1px solid var(--border); z-index:150; border-radius:16px 16px 0 0; } 
     .articles-wrap { max-width:100%; }
     .content-header .header-row { padding-left:12px; padding-right:12px; }
@@ -252,63 +260,166 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 
 </style>
 </head>
-<body>
+<body class="theme-paper">
 <div class="app">
-<div class="sidebar" id="sidebar">
+<div class="sidebar collapsed" id="sidebar">
 <div class="sidebar-header">
 <button class="btn-icon" id="toggleSidebarBtn" title="折叠/展开">
-    <i class="fas fa-bars"></i>
-    <div class="toggle-menu" id="toggleMenu">
-        <div class="toggle-menu-item" id="collapseAllGroups">
-            <i class="fas fa-folder-minus"></i>
-            <span>隐藏分组</span>
+    <i class="fas fa-indent"></i>
+    
+<div class="toggle-menu" id="toggleMenu">
+        <div class="toggle-menu-item" id="hideSidebarBtn">
+            <i class="fas fa-eye-slash"></i>
+            <span>隐藏侧边栏</span>
         </div>
-        <div class="toggle-menu-item" id="expandAllGroups">
-            <i class="fas fa-folder-plus"></i>
-            <span>展开分组</span>
-        </div>
-    </div>
-</button>
+    </div></button>
 <span>主题分类</span>
 <button class="btn-icon" id="addFeedBtn" title="添加订阅源"><i class="fas fa-plus"></i></button>
 </div>
 <div class="sidebar-search">
-<input type="text" id="searchFeeds" placeholder="搜索订阅源..." />
+<input type="text" id="searchFeeds" placeholder="搜索订阅源...">
 </div>
-<div class="feed-list-wrap" id="feedList"></div>
+<div class="feed-list-wrap" id="feedList"><div class="cat-header" data-cat="国内科技"><i class="fas fa-microchip cat-icon"></i><span>国内科技</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="国内科技"><div class="feed-item active" data-id="ithome_0"><span class="fi-short">IT</span><span class="fi-name">IT之家</span><span class="fi-count ">26</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('ithome_0')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('ithome_0')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="sspai"><span class="fi-short">少</span><span class="fi-name">少数派</span><span class="fi-count ">12</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('sspai')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('sspai')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="ifanr"><span class="fi-short">爱</span><span class="fi-name">爱范儿</span><span class="fi-count ">23</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('ifanr')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('ifanr')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="geekpark"><span class="fi-short">极</span><span class="fi-name">极客公园</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('geekpark')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('geekpark')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="36kr"><span class="fi-short">氪</span><span class="fi-name">36氪(综合)</span><span class="fi-count ">23</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('36kr')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('36kr')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="36kr_newsflash"><span class="fi-short">氪快</span><span class="fi-name">36氪(快讯)</span><span class="fi-count ">20</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('36kr_newsflash')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('36kr_newsflash')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="mydrivers_hw"><span class="fi-short">快</span><span class="fi-name">快科技全硬件评测</span><span class="fi-count ">10</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('mydrivers_hw')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('mydrivers_hw')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="mydrivers_phone"><span class="fi-short">快手</span><span class="fi-name">快科技手机通讯</span><span class="fi-count ">8</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('mydrivers_phone')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('mydrivers_phone')"><i class="fas fa-trash"></i></button></div></div></div><div class="cat-header" data-cat="开发社区"><i class="fas fa-code cat-icon"></i><span>开发社区</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="开发社区"><div class="feed-item" data-id="hnrss"><span class="fi-short">HN</span><span class="fi-name">Hacker News</span><span class="fi-count ">38</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('hnrss')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('hnrss')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="v2ex_hot"><span class="fi-short">V2</span><span class="fi-name">V2EX热榜</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('v2ex_hot')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('v2ex_hot')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="ruanyifeng"><span class="fi-short">阮</span><span class="fi-name">阮一峰日志</span><span class="fi-count ">3</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('ruanyifeng')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('ruanyifeng')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="coolshell"><span class="fi-short">酷</span><span class="fi-name">酷壳 CoolShell</span><span class="fi-count ">10</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('coolshell')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('coolshell')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="cloudflare_blog"><span class="fi-short">CF</span><span class="fi-name">Cloudflare官方博客</span><span class="fi-count ">13</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('cloudflare_blog')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('cloudflare_blog')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="swift_blog"><span class="fi-short">Sw</span><span class="fi-name">Swift官方博客</span><span class="fi-count ">10</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('swift_blog')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('swift_blog')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="python_cat"><span class="fi-short">Py</span><span class="fi-name">Python潮流周刊</span><span class="fi-count ">12</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('python_cat')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('python_cat')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="mdn_weekly"><span class="fi-short">MDN</span><span class="fi-name">MDN前端周刊</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('mdn_weekly')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('mdn_weekly')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="arxiv_ai"><span class="fi-short">Ar</span><span class="fi-name">ArXiv人工智能论文</span><span class="fi-count ">10</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('arxiv_ai')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('arxiv_ai')"><i class="fas fa-trash"></i></button></div></div></div><div class="cat-header" data-cat="英文资讯"><i class="fas fa-globe cat-icon"></i><span>英文资讯</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="英文资讯"><div class="feed-item" data-id="techcrunch"><span class="fi-short">TC</span><span class="fi-name">TechCrunch</span><span class="fi-count ">24</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('techcrunch')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('techcrunch')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="theverge"><span class="fi-short">Ve</span><span class="fi-name">The Verge</span><span class="fi-count ">30</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('theverge')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('theverge')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="arstechnica"><span class="fi-short">Ars</span><span class="fi-name">Ars Technica</span><span class="fi-count ">21</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('arstechnica')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('arstechnica')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="tomshardware"><span class="fi-short">TH</span><span class="fi-name">Tom's Hardware</span><span class="fi-count ">20</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('tomshardware')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('tomshardware')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="androidauthority"><span class="fi-short">AA</span><span class="fi-name">Android Authority</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('androidauthority')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('androidauthority')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="engadget_reviews"><span class="fi-short">En</span><span class="fi-name">Engadget评测</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('engadget_reviews')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('engadget_reviews')"><i class="fas fa-trash"></i></button></div></div></div><div class="cat-header" data-cat="国内财经"><i class="fas fa-yen-sign cat-icon"></i><span>国内财经</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="国内财经"><div class="feed-item" data-id="ifeng_head"><span class="fi-short">凤</span><span class="fi-name">凤凰财经头条</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('ifeng_head')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('ifeng_head')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="ifeng_stock"><span class="fi-short">股</span><span class="fi-name">凤凰股市资讯</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('ifeng_stock')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('ifeng_stock')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="ifeng_fund"><span class="fi-short">基</span><span class="fi-name">凤凰基金理财</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('ifeng_fund')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('ifeng_fund')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="baidu_fin"><span class="fi-short">财</span><span class="fi-name">百度财经焦点</span><span class="fi-count ">10</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('baidu_fin')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('baidu_fin')"><i class="fas fa-trash"></i></button></div></div></div><div class="cat-header" data-cat="海外财经"><i class="fas fa-dollar-sign cat-icon"></i><span>海外财经</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="海外财经"><div class="feed-item" data-id="cnbc"><span class="fi-short">CNBC</span><span class="fi-name">CNBC全球财经</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('cnbc')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('cnbc')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="wolfstreet"><span class="fi-short">WS</span><span class="fi-name">Wolf Street</span><span class="fi-count ">10</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('wolfstreet')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('wolfstreet')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="kitco"><span class="fi-short">Ki</span><span class="fi-name">Kitco贵金属</span><span class="fi-count empty"></span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('kitco')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('kitco')"><i class="fas fa-trash"></i></button></div></div></div><div class="cat-header" data-cat="综合时政资讯"><i class="fas fa-newspaper cat-icon"></i><span>综合时政资讯</span><i class="fas fa-chevron-right chev"></i></div><div class="feed-items" data-cat="综合时政资讯"><div class="feed-item" data-id="chinadaily"><span class="fi-short">CD</span><span class="fi-name">China Daily英文</span><span class="fi-count ">5</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('chinadaily')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('chinadaily')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="baidu_shizheng"><span class="fi-short">政</span><span class="fi-name">百度国内时政</span><span class="fi-count ">10</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('baidu_shizheng')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('baidu_shizheng')"><i class="fas fa-trash"></i></button></div></div><div class="feed-item" data-id="baidu_internews"><span class="fi-short">际</span><span class="fi-name">百度国际新闻</span><span class="fi-count ">10</span><div class="fi-actions"><button class="move-btn" title="Move" onclick="event.stopPropagation();moveFeed('baidu_internews')"><i class="fas fa-arrows-alt"></i></button><button class="del-btn" title="Delete" onclick="event.stopPropagation();deleteFeed('baidu_internews')"><i class="fas fa-trash"></i></button></div></div></div></div>
 </div>
 <div class="main">
 <div class="content-header">
 <div class="header-row">
 <div class="title-section">
-<button class="btn-icon hamburger" id="menuBtn"><i class="fas fa-bars"></i></button>
-<span id="contentTitle">Glenman RSS阅读器</span>
-<button class="btn-icon" id="backToHomeBtn" title="回到首页" style="display:none"><i class="fas fa-home"></i></button>
+<button class="btn-icon hamburger" id="menuBtn"><i class="fas fa-indent"></i></button>
+<span id="contentTitle">IT之家</span>
+<button class="btn-icon" id="backToHomeBtn" title="回到首页" style="display: flex;"><i class="fas fa-home"></i></button>
 </div>
 <button class="btn-icon" id="refreshBtn" title="刷新"><i class="fas fa-sync-alt"></i></button>
 </div>
 <div class="header-row">
 <div class="search-section">
-<input type="text" id="searchArticles" class="article-search" placeholder="搜索新闻标题..." />
+<input type="text" id="searchArticles" class="article-search" placeholder="搜索新闻标题...">
 </div>
 <div class="actions-section">
 <div class="theme-switch" id="themeSwitch" title="切换主题">
 <button class="btn-icon theme-btn" data-theme="light" title="日间"><i class="fas fa-sun"></i></button>
 <button class="btn-icon theme-btn" data-theme="dark" title="夜间"><i class="fas fa-moon"></i></button>
 <button class="btn-icon theme-btn" data-theme="eye" title="护眼"><i class="fas fa-leaf"></i></button>
-<button class="btn-icon theme-btn" data-theme="paper" title="纸质"><i class="fas fa-scroll"></i></button>
+<button class="btn-icon theme-btn active" data-theme="paper" title="纸质"><i class="fas fa-scroll"></i></button>
 </div>
 </div>
 </div>
 </div>
 <div class="body-wrap">
-<div class="articles-wrap" id="articlesWrap" tabindex="0">
-<div class="welcome">
-<i class="fas fa-rss"></i>
-<h2>Welcome to Glenman阅读器</h2>
-<p>Select a feed from the sidebar or add a new one.</p>
-</div>
-</div>
+<div class="articles-wrap" id="articlesWrap" tabindex="0"><div class="article-card unread" data-id="mq4v5dgd10ofes"><div class="ac-title">2999 元起：小米 17T 系列手机发布，天玑 8500-Ultra / 天玑 9500 芯片</div><div class="ac-desc">IT之家 6 月 8 日消息，小米 17T 系列手机今日发布，分为标准版和 Pro 版两款机型，暑期特惠价 2999 元起。
+IT之家整理价格如下：
+小米 17T
+
+12GB+256GB 版 3299 元，暑期特惠价 2999 元，国补价 2549.15 元
+12GB+512GB 版 3799 元，暑期特惠价 3499 元，国补价 2999 元
+
+小米 17T Pro
+
+12GB+256GB 版 </div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4v5dgdzq8cf2"><div class="ac-title">宏芯宇发布自研 UFS 2.2 主控芯片 HG2325，22nm 制程</div><div class="ac-desc">IT之家 6 月 8 日消息，存储半导体模组企业宏芯宇 (HOSINGLOBAL) 在 COMPUTEX 2026 上发布了其自研 UFS 2.2 嵌入式闪存主控芯片 HG2325。
+
+IT之家了解到，HG2325 采用 22nm 成熟制程工艺，内置大容量 SRAM 缓存搭载自研 4KB LDPC 硬件纠错引擎，适配主流 3D TLC / QLC NAND，闪存接口速率支持到 1600MT/s。
+</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card read" data-id="mq4v5dgdrfaa6e"><div class="ac-title">科学家首次精确编辑人类胚胎基因，引发“定制婴儿”担忧</div><div class="ac-desc">IT之家 6 月 8 日消息，据华尔街日报报道，上周，一项针对早期胚胎开展基因编辑的研究成果对外公布。该技术虽远不等同于“定制婴儿”，但无疑朝着这一方向迈出了一步。
+
+哥伦比亚大学发育细胞生物学副教授迪特尔・埃格利，联合纽约基因检测初创企业 Nucleus Genomics 公司的内森・特雷夫等合作者表示，这项技术有望修复胚胎中致病的基因突变。
+埃格利称：“我们并非向公众宣告‘明天就能培育出基因编</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card read" data-id="mq4v5dgd3j6x4w"><div class="ac-title">富士通客户端计算推出 FMV U59-L2 笔记本，重 908g</div><div class="ac-desc">IT之家 6 月 8 日消息，富士通客户端计算 (FCCL) 本月 2 日宣布推出 2026 年夏季笔记本电脑阵容，其中主打的高规格型号为 FMV Note U 系列的新款 —— U59-L2。这也是一款典型的日系超轻本。
+
+U59-L2 基于英特尔酷睿 Ultra 5 处理器 226V，配备 64Whr 电池，质量约为 908g。其板载集成 16GB LPDDR5X-8533 内存，拥有 512</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4v5dgdd4y748"><div class="ac-title">Meta 与欧洲空间局展开合作：Quest 3 头显将进入国际空间站，帮助宇航员进行太空行走训练</div><div class="ac-desc">IT之家 6 月 8 日消息，Meta 发文，宣布与欧洲空间局（ESA）展开合作，两台 Meta Quest 3 VR 头显即将被送往国际空间站（ISS），用于帮助宇航员在正式出舱前进行太空行走训练。
+
+事实上，Quest 3 并不是首款进入国际空间站的 XR 设备。早在 2015 年，微软就曾将初代 HoloLens 送上空间站，通过“远程专家模式”协助地面工程团队指导宇航员维修设备。而 Ocu</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4v5dgdnn2oie"><div class="ac-title">仅限今日：直接保价 88 元，京东 PLUS 会员 618 大额消费白捡一笔</div><div class="ac-desc">京东现已开启 6 月 8 日 PLUS 会员日大促，京东无门槛红包至高 26618 元全天加码，每天抽 3 次：点此抽取。
+PLUS 会员日可用 2 积分兑换 888-88 元神券，支持万券叠加（类似之前的全品券）：点此兑券。
+
+兑换 88 元券后，可进入一键保价：点此保价。
+近期购买的商品中，若存在支持此券的商品，且还在价保期内，则可一键保价。
+PLUS 会员们兑换 88 元后，都可试试价保哦。</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4v5dgdel957e"><div class="ac-title">全球首个：高德发布 3D 原生城市世界模型 ABot-Earth0.5，单图 10 分钟重建 3D 城市</div><div class="ac-desc">IT之家 6 月 8 日消息，今日阿里巴巴集团旗下高德发布全球首个 3D 原生城市世界模型 ABot-Earth0.5，该模型已建成全球覆盖面积最广的 3D 地图，遍及 190 多个国家和地区。
+
+
+据官方介绍，ABot-Earth0.5 则更像一座“自动化工厂”。用户输入一张卫星图像或一段文字描述，系统仅用 10 分钟就能在一块消费级 GPU 上，生成公里级 3D 城市场景。
+其中模型输出的是可</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4v5dgdqwgl10"><div class="ac-title">狼蛛 Nova98 系列机械键盘上架：双 8KHz 回报率、1.14 英寸彩屏 + 旋钮，399 元起</div><div class="ac-desc">IT之家 6 月 8 日消息，狼蛛现已在京东上架 Nova98 系列机械键盘，提供双 8KHz 回报率和彩屏，定价为 399 元起，6 月 17 日首销，IT之家整理价格如下：
+
+月岩灰（海棠轴）：399 元
+赤炎黑（海棠轴）：439 元
+墨影 / 银刃（灵犀轴）：499 元
+烈焰战甲（流星冰淇淋轴）：549 元
+
+京东狼蛛 Nova98 机械键盘 399 元起直达链接
+
+系列键盘提供了 5 种主</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4v5dgdrkqeq2"><div class="ac-title">别克昂科威达成 200 万辆整车下线里程碑，并推出全新车色“远山黛”</div><div class="ac-desc">IT之家 6 月 8 日消息，今日，别克昂科威家族迎来重要里程碑，第 200 万台整车昂科威于上汽通用汽车东岳“白金工厂”正式下线。
+
+与此同时，昂科威 Plus 全新车色「远山黛」正式登场，采用清漆层温变颜料、纳米闪片及超闪红蓝珠光等多重材质配方 8 层涂装工艺。此外，限时购买昂科威家族车型可享 1000 元抵 7000 元定金膨胀、日供低至 1.4 元的“1 元贷”购车方案、至高 10000 </div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4v5dgduvd68g"><div class="ac-title">雷柏推出 VH800Pro 四模电竞耳机：280g 重量、40mm 动圈单元，249 元</div><div class="ac-desc">IT之家 6 月 8 日消息，雷柏现已在京东上架 VH800Pro 四模电竞耳机，该产品将于 6 月 11 日发售，提供全景 7.1 环绕音效，定价为 249 元。
+
+
+该耳机提供白霜蓝、树莓粉、赤焰黑三种配色，带有 RGB 灯效，整体重量 280g，使用人体工程学头梁设计，提供了 360 度全指向独立耳麦。
+
+该耳机配备 40mm 动圈单元，支持全景 7.1 电竞沉浸环绕音效，提供 15ms 延</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4knetwhnlkp4"><div class="ac-title">微软第一方蒸汽朋克游戏《发条革命》上架 Steam，明年发售</div><div class="ac-desc">IT之家 6 月 8 日消息，微软第一方工作室 inXile entertainment 在今天的 Xbox 发布会中宣布旗下第一人称角色扮演游戏《发条革命（Clockwork Revolution）》将于明年登陆 Xbox Series X｜S 和 PC 平台，同步加入 XGP 服务。
+ 
+据介绍，《发条革命》是一款第一人称蒸汽朋克游戏，采用时间扭曲题材。在一次不可思议的发明后，玩家获得了穿越时</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4knetw45hagb"><div class="ac-title">华为余承东官宣尊界 V800，定位“超高端 MPV”</div><div class="ac-desc">IT之家 6 月 8 日消息，华为常务董事、产品投资评审委员会主任、终端 BG 董事长余承东今日转发尊界 V800 官宣视频，并配文：“探索超高端 MPV 出行新体验。”
+
+
+IT之家注意到，这款新车上个月已经在工信部完成申报。“证件照”中的车型采用了类似香槟金和棕色的双拼组合，采用长车头设计，前脸灯组延续尊界 S800 的设计语言，纵向的尾灯配合大尺寸镀铬饰条，呈现出颇为威严的气场。而在前脸部分</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4knetxe4sc5v"><div class="ac-title">COMPUTEX 2026 吸引超 11 万专业人士参观，明年台北国际电脑展 6 月 1~4 日举办</div><div class="ac-desc">IT之家 6 月 8 日消息，以“AI Together”为主题的 COMPUTEX TAIPEI 2026 台北国际电脑展已于上周五（6 月 5 日）落幕。主办单位之一台北市电脑公会在新闻稿中表示，本次展会吸引了来自 152 个国家或地区的 111312 名专业人士参观。
+
+台北市电脑公会亦宣布，2027 年的 COMPUTEX 将在明年 6 月 1~4 日举办，维持今年的三展馆（南港展览馆 1</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4knetx0xmdzv"><div class="ac-title">英伟达与韩国斗山集团扩大合作，覆盖物理 AI、机器人及 AI 工厂基础设施</div><div class="ac-desc">IT之家 6 月 8 日消息，据 THE ELEC 报道，当地时间 6 月 7 日，英伟达首席执行官黄仁勋在首尔蚕室棒球场会见了韩国斗山集团会长朴廷原。当天斗山熊队迎来主场赛事，黄仁勋受邀担任开球嘉宾，朴廷原专程到场迎接。
+
+下午 4 时 10 分左右，黄仁勋抵达球场，准备为比赛进行开球仪式。斗山熊棒球队所有者朴廷原早已在球场正门等候，亲自上前迎接。
+这也是这两位商界领袖首次公开会面。面对记者问及</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4knetx824j7b"><div class="ac-title">消息称某厂新机搭载 185Hz 直屏 + 骁龙 8E5 芯片，预计为小米 REDMI K100 系列</div><div class="ac-desc">IT之家 6 月 8 日消息，博主 @数码闲聊站 今日曝光某厂新机的主要规格，结合该博主此前的爆料习惯，评论区网友推测为小米 REDMI K100 系列。
+
+
+IT之家附曝光参数如下：
+
+185Hz 超高刷直屏
+超清显示
+骁龙 8E5 双芯平台
+超 8000mAh 大电池
+50W 无线充
+对称双扬
+2 亿大底影像
+长焦微距
+满级防水
+玻璃后盖
+3D 超声波指纹
+
+
+▲ IT之家实拍：REDMI K</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4kneu6236oj9"><div class="ac-title">京东红包今日 10 点再加码：猜数字抢 5 元红包</div><div class="ac-desc">今日 10 点京东红包再加码，猜数字有机会抢 5 元加码红包：点此抽取。
+猜数字红包玩法：每人 3 次机会，猜中锦鲤数字后即可获得领取额外奖励的机会，可随机获得京东红包、品类东券或店铺券等奖励。猜错后会缩小锦鲤数字的范围并提示用户，如果用户 3 次机会均未猜中，则无法获得任何奖励。
+
+蚊子肉也是肉，节点开始越早抢红包金额越大，小伙伴可每天都领（多个红包支持叠加使用），积攒多天后带走个大件哦 ~
+
+</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4kneu7owtcq8"><div class="ac-title">又一 PROM21 扩展卡：WisdPi 展示 11USB + 4M.2 + OCuLink 设计</div><div class="ac-desc">IT之家 6 月 8 日消息，创客硬件品牌 WisdPi 近日在其官网上线了一款基于 AMD Promontory 21 芯片组的 PCIe AIC 扩展卡，标价 199.99 美元（IT之家注：现汇率约合 1359 元人民币）。
+
+WisdPi 的这款 PROM21 扩展卡长 170mm、高 70mm。其上行接口为 PCIe Gen4 ×4“金手指”；下行接口方面则包括 1 个 USB-C 20</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4kneu7cjo8cq"><div class="ac-title">一加 Turbo 6X 系列官宣 6 月 10 日发布，定位“1500 元档”</div><div class="ac-desc">IT之家 6 月 8 日消息，一加今日官宣，一加 Turbo 6X 系列将于 6 月 10 日 14:30 正式发布，号称“1500 元档续航流畅实力之选”。
+
+一加 Turbo 6X 将有标准版、Pro 版两个版本。一加 Turbo 6X 将拥有白里挑一、星耀黑、踏青云三种配色可选，Turbo 6X Pro 则是可选心想事橙、跃马黑两种配色。
+其中，一加 Turbo 6X Pro 带来 8000</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4kneu7j3rm5j"><div class="ac-title">汉王推出 Clear Mobile Plus 手机造型电纸书阅读器：配 6.13 英寸 Carta 1300 面板，1899 元</div><div class="ac-desc">IT之家 6 月 8 日消息，汉王现已在京东上架一款 Clear Mobile Plus 手机造型电纸书阅读器，该产品配备一块 6.13 英寸黑白墨水屏面板，定价为 1899 元，部分地区国补后 1633.05 元。
+
+
+该机可选黑白双色，厚度 9mm，重量 198g，正面配备一块 6.13 英寸 1648x824 分辨率 Carta1300 黑白墨水屏面板，匹配 30 级冷暖背光灯，手机背面搭载</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card unread" data-id="mq4kneu77r10gw"><div class="ac-title">SK 电讯将基于 NVIDIA DSX 平台建设 GW 级 AI 工厂云，2027 年投运</div><div class="ac-desc">IT之家 6 月 8 日消息，韩国三大电信运营商之一的 SK 电讯 (SK telecom / SKT) 当地时间近日宣布，将基于 NVIDIA（英伟达） AI 工厂平台 DSX 构建 AI 数据中心，目标最终将 AI 云服务规模扩展到 GW 级别。
+
+SK 电讯将首先把 Blackwell 架构 GPU 用于 AI 训练与推理，此后则逐步导入最新的 Vera Rubin 平台。SK 电讯的 AI</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>4d ago</span></div></div><div class="article-card read" data-id="mq3wbkt2lssuhn"><div class="ac-title">惠普 2026 款 HyperX 暗影精灵 PRO 16 英寸游戏本新增 512GB 等版本，10498 元起</div><div class="ac-desc">IT之家 6 月 7 日消息，惠普 2026 款 HyperX 暗影精灵 PRO 16 英寸游戏本发布于 4 月，现已新增 512GB 和 RTX 5070 版本可选，售价 10498 元起，国补到手价 8998 元起：
+
+U7 255HX + RTX 5060 + 16GB + 512GB：10498 元起，国补到手价 8998 元
+U7 255HX + 8GB RTX 5070 + 16GB </div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div><div class="article-card unread" data-id="mq3wbkt26b6nfa"><div class="ac-title">Bitspower 台北展示新一代分体式水冷组件与“液氮炮”</div><div class="ac-desc">IT之家 6 月 7 日消息，知名 PC 分体式水冷厂商 Bitspower（超昱）在本年度的 COMPUTEX 台北国际电脑展公开展示了一系列的新品。
+在处理器散热方面，Bitspower 带来了 PRIME NEO 系列冷头。其针对处理器的热点调整水流，重新设计流道以增强水冷均匀性，冷板单元模块化；而在外观上，其拥有可更换的顶盖装饰件设计，提供黑色铝制、灰色铝制、磨砂亚克力等版本。
+
+对于显卡</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div><div class="article-card unread" data-id="mq3wbkt2kzooss"><div class="ac-title">体积仅 2749 字节，“Windows 任务管理器之父”戴夫 · 普卢默发布 RetroPad 记事本软件</div><div class="ac-desc">IT之家 6 月 7 日消息，前微软员工戴夫 · 普卢默（Dave W. Plummer）前天公布了自己的最新作品：RetroPad 记事本软件。整个软件的体积只有 2729 字节（2.7KB），完全使用 x86 汇编语言打造。
+
+作为参考，戴夫 · 普卢默于 1993 年加入微软，期间曾亲手打造任务管理器、计算器和纸牌等 Windows 自带软件。他已于 2003 年离开微软，目前转型为视频博主</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div><div class="article-card unread" data-id="mq3wbkt2tcxz3f"><div class="ac-title">RYVNTEC 展示通用型机箱贯流风机 Airjet 360，内置 2 个风扇单元</div><div class="ac-desc">IT之家 6 月 7 日消息，散热品牌 RYVNTEC（睿温）近日公布了机箱用“通用型”贯流风机 Airjet 360。从命名上来看其应兼容机箱的 3×120mm 风扇位或 360 冷排位。
+
+RYVNTEC 官网宣称 Airjet 360 面向 1U / 2U 高度的服务器系统；不过从两侧的 RGB 灯效来看，其电竞属性更为明显。该贯流风机内置一对风扇单元，采用 12V DC 供电，支持 PWM</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div><div class="article-card unread" data-id="mq3wbkt2hurizr"><div class="ac-title">三星 Galaxy S26 FE 真机曝光，搭载 Exynos 2500 芯片</div><div class="ac-desc">IT之家 6 月 7 日消息，据 9to5Google 昨日消息，型号为 SM-S741 的 Galaxy S26 FE 手机因通过 WPC（无线充电联盟）的认证而曝光。
+
+从外观来看，该机与今年早些时候发布的标准版 Galaxy S26 风格高度相近，沿用三星 2026 年度设计语言，配备凸起的后置摄像模组、平直机身中框。
+IT之家注意到，这款机型此前已现身 GeekBench 跑分库，6.2.</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div><div class="article-card unread" data-id="mq3wbkt2930evy"><div class="ac-title">特斯拉高管弗朗茨暗示：全新 Roadster 超跑将在“几周内”亮相</div><div class="ac-desc">IT之家 6 月 7 日消息，据汽车媒体 TeslaRati 今天报道，特斯拉首席设计师弗朗茨 · 冯 · 霍兹豪森（Franz von Holzhausen）在奥地利的一场特别活动上暗示，全新 Roadster 超跑将在“几周内”亮相。
+
+据IT之家此前援引《The Information》消息，目前有传闻称特斯拉计划将 Roadster 首秀延期至 8 月。此前该公司曾宣称 Roadster </div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div><div class="article-card unread" data-id="mq3wbkt2uy9kiu"><div class="ac-title">多款既有产品迎改款 / 迭代，TRYX 参展 2026 台北国际电脑展</div><div class="ac-desc">IT之家 6 月 7 日消息，TRYX（创氪星系）作为一家主打创意的 PC DIY 组件品牌，在 COMPUTEX 2026 台北国际电脑展上对既有产品线进行了升级，多款新品也正式面世。
+液冷
+处理器 AIO 液冷散热器是 TRYX 的标志性产品线。该企业在该领域不仅展示了近期新品 STAGE 和 HOLO，还公布了“当家花旦”展域系列 PANORAMA 和 PANORAMA SE 的二代版本。
+</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div><div class="article-card unread" data-id="mq3wbkt2y4tc2o"><div class="ac-title">海外大神将《半衰期》移植到 2007 年的诺基亚 N95 手机，可 30 帧运行</div><div class="ac-desc">IT之家 6 月 7 日消息，阿根廷开发者 Dante D. Leoncini 昨天在 X 平台发文称，他已经成功将经典射击游戏《半衰期》移植到 2007 年上市的诺基亚 N95 手机，并且还加入了无线鼠标支持。
+Leoncini 在社交媒体写道：
+我终于让《半衰期》在诺基亚 N95 达成 30 FPS 运行了！虽然目前还有一些卡顿情况存在，但我已经确认原因并进行修复。鼠标和键盘支持也已经加入，目</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div><div class="article-card unread" data-id="mq3wbkt28yes9j"><div class="ac-title">玩趣磁流体：新锐机电散品牌 amiiba 展示多款产品</div><div class="ac-desc">IT之家 6 月 7 日消息，新锐 PC 机箱、电源、散热品牌 amiiba 在 COMPUTEX 2026 前夕“退出隐身模式”，并在本次台北国际电脑展上带来了一系列产品。
+其中机箱 Ferra 和液冷散热器 Proteus 均在外部集成了一个装饰性的磁流体模块。当磁铁靠近时，模块内部的磁性流体会因为磁力作用出现形变。用户可通过磁铁的方位和距离让磁流体展现不同的立体形态。
+
+Ferra 机箱属于</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div><div class="article-card read" data-id="mq3wbkt2lmozog"><div class="ac-title">18999 元，机械革命苍龙 16 Ultra 笔记本 R9-9955HX+RTX5080 配置开售</div><div class="ac-desc">IT之家 6 月 7 日消息，机械革命苍龙 16 Ultra 笔记本 R9-9955HX+RTX5080 配置现已开售，新品支持外接水冷散热，拥有 32GB 内存、2TB 固态硬盘，售价 18999 元。
+
+
+IT之家从商品页面获悉，这款笔记本配备 AMD 锐龙 9 9955HX 处理器，采用 16 核心 32 线程设计，单核主频最高可达 5.4GHz，L2+L3 缓存可达 80MB，单烤功耗最高</div><div class="ac-meta"><span class="ac-src">IT之家</span><span>5d ago</span></div></div></div>
 <div class="detail-panel" id="detailPanel">
 <div class="detail-empty" id="detailEmpty">
 <i class="fas fa-file-alt"></i>
@@ -328,7 +439,7 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 <h3>Add Feed</h3>
 <form id="addFeedForm">
 <label>RSS URL</label>
-<input type="url" id="feedUrl" required placeholder="https://example.com/feed.xml">
+<input type="url" id="feedUrl" required="" placeholder="https://example.com/feed.xml">
 <label>Category</label>
 <select id="feedCategory"></select>
 <label>Name (optional)</label>
@@ -340,7 +451,7 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 </form>
 </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast">Refreshed, added 0 articles</div>
 <script>
 
 const API_URL="https://api.rss2json.com/v1/api.json?count=50&rss_url=";
@@ -724,7 +835,16 @@ document.getElementById("addFeedForm").addEventListener("submit",async e=>{
     toast("Feed added");
 });
 
-document.getElementById("menuBtn").addEventListener("click",()=>{document.getElementById("sidebar").classList.toggle("open");document.getElementById("sidebar").classList.toggle("pinned");});
+document.getElementById("menuBtn").addEventListener("click", function() {
+    const sb = document.querySelector(".sidebar");
+
+    // 汉堡按钮切换侧边栏显示/隐藏
+    if (sb.classList.contains("hidden")) {
+        sb.classList.remove("hidden");
+    } else {
+        sb.classList.add("hidden");
+    }
+});
 document.getElementById("refreshBtn").addEventListener("click",refreshFeeds);
 document.getElementById("closeDetailBtn").addEventListener("click",closeArticle);
 
@@ -755,8 +875,7 @@ document.getElementById("closeDetailBtn").addEventListener("click",closeArticle)
     const toggleBtn = document.getElementById("toggleSidebarBtn");
     const toggleIcon = toggleBtn.querySelector("i");
     const toggleMenu = document.getElementById("toggleMenu");
-    const collapseAllGroups = document.getElementById("collapseAllGroups");
-    const expandAllGroups = document.getElementById("expandAllGroups");
+    const hideSidebarBtn = document.getElementById("hideSidebarBtn");
     const isMobile = ()=> window.innerWidth <= 768;
 
     function setIcon(collapsed){
@@ -775,19 +894,24 @@ document.getElementById("closeDetailBtn").addEventListener("click",closeArticle)
         toggleMenu.classList.remove("show");
     }
 
-    function collapseAll() {
-        document.querySelectorAll(".cat-header.open").forEach(el => {
-            el.classList.remove("open");
-            el.nextElementSibling?.classList.remove("open");
-        });
+    function hideSidebar() {
+        // 使用 CSS 类控制，而非内联 style，确保侧边栏与主内容在同一个 flex 布局中
+        sb.classList.add("hidden");
         hideMenu();
     }
 
-    function expandAll() {
-        document.querySelectorAll(".cat-header").forEach(el => {
-            el.classList.add("open");
-            el.nextElementSibling?.classList.add("open");
-        });
+    function toggleCollapse() {
+        // 如果侧边栏是隐藏状态，先取消隐藏
+        if(sb.classList.contains("hidden")){
+            sb.classList.remove("hidden");
+        }
+        if(sb.classList.contains("collapsed")){
+            sb.classList.remove("collapsed");
+            setIcon(false);
+        } else {
+            sb.classList.add("collapsed");
+            setIcon(true);
+        }
         hideMenu();
     }
 
@@ -796,18 +920,14 @@ document.getElementById("closeDetailBtn").addEventListener("click",closeArticle)
     toggleMenu.addEventListener("mouseenter", showMenu);
     toggleMenu.addEventListener("mouseleave", hideMenu);
 
-    collapseAllGroups.addEventListener("click", collapseAll);
-    expandAllGroups.addEventListener("click", expandAll);
+    hideSidebarBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        hideSidebar();
+    });
 
     toggleBtn.addEventListener("click", (e)=>{
         e.stopPropagation();
-        if(sb.classList.contains("collapsed")){
-            sb.classList.remove("collapsed");
-            setIcon(false);
-        } else {
-            sb.classList.add("collapsed");
-            setIcon(true);
-        }
+        toggleCollapse();
     });
 
     if(!isMobile()){ sb.classList.add("collapsed"); setIcon(true); }
@@ -844,5 +964,5 @@ if(feeds.length)setTimeout(refreshFeeds,500);
 setInterval(refreshFeeds,30*60*1000);
 
 </script>
-</body>
-</html>
+
+<doubao-ai-csui id="ff7d0870bafb4426b64452c9dcb202ef" data-host-id="e3d6249b-5ce8-44f9-b32e-6f4fbe0c4b50"></doubao-ai-csui><div id="doubao-ai-translate-image-assistante3d6249b-5ce8-44f9-b32e-6f4fbe0c4b50" data-collection-img-host-id="e3d6249b-5ce8-44f9-b32e-6f4fbe0c4b50"></div><div style="width: 0px; height: 0px; position: absolute; z-index: 200000;"></div><div id="doubao-ai-assistant" aria-label="flow-ai-assistant" style="width: 0px; height: 0px; position: absolute; top: 0px; left: 0px; overflow: hidden;" class="flow-ai-select-bar-enabled flow-ai-select-bar-support-iframe" aria-description="flow-ai-select-bar-enabled flow-ai-select-bar-support-iframe"></div><div id="yuanbao-options" aria-label="yuanbao-options" style="width: 0px; height: 0px; position: absolute; top: 0px; left: 0px; overflow: hidden"><div id="yuanbao-option-text-selection" aria-label="yuanbao-option-text-selection" aria-description="yuanbao-option-text-selection-enabled" class="yuanbao-option-text-selection-enabled"></div></div></body><div id="yuanbao-float-box-container" style="position: static; display: block;"></div></html>
