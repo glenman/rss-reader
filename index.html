@@ -131,7 +131,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .theme-switch .theme-btn { background:transparent; width:28px; height:28px; font-size:12px; color:var(--text2); opacity:.6; }
 .theme-switch .theme-btn:hover { background:var(--border); color:var(--text); opacity:1; }
 .theme-switch .theme-btn.active { color:var(--accent); opacity:1; }
-.feed-list-wrap { flex:1; overflow-y:auto; padding:8px 0; }
+.feed-list-wrap { flex:1; overflow-y:auto; padding:8px 0; -webkit-overflow-scrolling:touch; }
 .cat-header { display:flex; align-items:center; padding:10px 16px 4px; cursor:pointer; gap:8px; }
 .cat-header .cat-icon { width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--accent); }
 .cat-header span { font-size:13px; font-weight:600; color:var(--text2); flex:1; white-space:nowrap; }
@@ -163,7 +163,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .content-header .search-section .article-search { width:100%; max-width:450px; }
 .content-header .actions-section { display:flex; align-items:center; gap:8px; margin-left:auto; }
 .body-wrap { flex:1; display:flex; overflow:hidden; min-height:0; }
-#articlesWrap { flex:1; overflow-y:auto; border-right:1px solid var(--border); max-width:50%; min-width:280px; outline:none; height:100%; scrollbar-width:auto; }
+#articlesWrap { flex:1; overflow-y:auto; border-right:1px solid var(--border); max-width:50%; min-width:280px; outline:none; height:100%; scrollbar-width:auto; -webkit-overflow-scrolling:touch; }
 .articles-wrap::-webkit-scrollbar { width:8px; }
 .articles-wrap::-webkit-scrollbar-track { background:transparent; }
 .articles-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
@@ -204,7 +204,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .detail-panel.open { flex:1; min-width:320px; max-width:60%; }
 .detail-header { display:flex; align-items:center; padding:12px 20px; gap:8px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card-bg); z-index:10; }
 .detail-header .dh-title { font-size:14px; font-weight:600; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.detail-body { padding:24px; flex:1; overflow-y:auto; }
+.detail-body { padding:24px; flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .detail-body h1 { font-size:24px; font-weight:700; line-height:1.4; margin-bottom:12px; }
 .detail-body .db-content h1 { font-size:inherit; font-weight:inherit; margin:inherit; line-height:inherit; }
 .detail-body .db-meta { font-size:13px; color:var(--text2); margin-bottom:20px; display:flex; gap:12px; flex-wrap:wrap; }
