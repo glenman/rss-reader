@@ -46,8 +46,47 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .sidebar.collapsed { width:var(--sidebar-collapsed-w); min-width:var(--sidebar-collapsed-w); overflow:hidden; }
 .sidebar-header { display:flex; align-items:center; padding:16px; gap:12px; border-bottom:1px solid var(--border); background:var(--card-bg); }
 .sidebar.collapsed .sidebar-header { padding:12px; justify-content:center; }
-.sidebar-header #toggleSidebarBtn { margin-left:-4px; flex-shrink:0; }
+.sidebar-header #toggleSidebarBtn { margin-left:-4px; flex-shrink:0; position:relative; }
 .sidebar.collapsed .sidebar-header #toggleSidebarBtn { margin-left:0; }
+
+.toggle-menu {
+    position:absolute;
+    top:100%;
+    left:0;
+    margin-top:4px;
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    box-shadow:0 4px 12px rgba(0,0,0,.1);
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(-4px);
+    transition:all .2s ease;
+    z-index:100;
+    min-width:140px;
+}
+.toggle-menu.show {
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+}
+.toggle-menu-item {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 12px;
+    cursor:pointer;
+    font-size:13px;
+    color:var(--text);
+    transition:background .1s;
+}
+.toggle-menu-item:hover {
+    background:var(--hover);
+}
+.toggle-menu-item i {
+    font-size:12px;
+    color:var(--text2);
+}
 .sidebar-header span { font-size:15px; font-weight:600; flex:1; transition:opacity .2s,width .2s; white-space:nowrap; }
 .sidebar.collapsed .sidebar-header span { opacity:0; flex:0; width:0; overflow:hidden; }
 .sidebar.collapsed .sidebar-search { display:none; }
@@ -101,8 +140,8 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .feed-item .fi-actions .del-btn { color:var(--danger); }
 .feed-item .fi-actions .move-btn { color:var(--accent); }
 .feed-item .fi-actions button:hover { background:var(--border); }
-.main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:flex-basis .3s ease; }
-.content-header { display:flex; flex-direction:column; padding:0; border-bottom:1px solid var(--border); background:var(--card-bg); }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:flex-basis .3s ease; min-height:0; }
+.content-header { display:flex; flex-direction:column; padding:0; border-bottom:1px solid var(--border); background:var(--card-bg); flex-shrink:0; }
 .header-row { display:flex; align-items:center; padding:12px 20px; }
 .header-row:first-child { padding-bottom:8px; }
 .header-row:last-child { padding-top:8px; }
@@ -112,8 +151,12 @@ body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica
 .content-header .search-section { flex:1; max-width:450px; margin-right:16px; }
 .content-header .search-section .article-search { width:100%; max-width:450px; }
 .content-header .actions-section { display:flex; align-items:center; gap:8px; margin-left:auto; }
-.body-wrap { flex:1; display:flex; overflow:hidden; }
-.articles-wrap { flex:1; overflow-y:auto; border-right:1px solid var(--border); max-width:50%; min-width:280px; outline:none; }
+.body-wrap { height:100vh; display:flex; overflow:hidden; }
+#articlesWrap { flex:1; overflow-y:auto; border-right:1px solid var(--border); max-width:50%; min-width:280px; outline:none; height:100%; scrollbar-width:auto; }
+.articles-wrap::-webkit-scrollbar { width:8px; }
+.articles-wrap::-webkit-scrollbar-track { background:transparent; }
+.articles-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+.articles-wrap::-webkit-scrollbar-thumb:hover { background:var(--text2); }
 .article-card { padding:16px 20px; border-bottom:1px solid var(--border); cursor:pointer; max-width:800px; margin:0 auto; transition:background .1s; }
 .article-card:hover { background:var(--hover); }
 .article-card.unread .ac-title { font-weight:700; color:var(--text); }
@@ -213,7 +256,19 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 <div class="app">
 <div class="sidebar" id="sidebar">
 <div class="sidebar-header">
-<button class="btn-icon" id="toggleSidebarBtn" title="折叠/展开"><i class="fas fa-bars"></i></button>
+<button class="btn-icon" id="toggleSidebarBtn" title="折叠/展开">
+    <i class="fas fa-bars"></i>
+    <div class="toggle-menu" id="toggleMenu">
+        <div class="toggle-menu-item" id="collapseAllGroups">
+            <i class="fas fa-folder-minus"></i>
+            <span>隐藏分组</span>
+        </div>
+        <div class="toggle-menu-item" id="expandAllGroups">
+            <i class="fas fa-folder-plus"></i>
+            <span>展开分组</span>
+        </div>
+    </div>
+</button>
 <span>主题分类</span>
 <button class="btn-icon" id="addFeedBtn" title="添加订阅源"><i class="fas fa-plus"></i></button>
 </div>
@@ -287,7 +342,7 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
 <div class="toast" id="toast"></div>
 <script>
 
-const API_URL="https://api.rss2json.com/v1/api.json?rss_url=";
+const API_URL="https://api.rss2json.com/v1/api.json?count=50&rss_url=";
 const MAX_CONCURRENT=5;
 const STORAGE_FEEDS="rss_feeds";
 const STORAGE_ARTICLES="rss_articles";
@@ -483,6 +538,10 @@ function selectFeed(fid){
         }
     }
     if(window.innerWidth<=768)document.getElementById("sidebar").classList.remove("open");
+    // 自动聚焦到文章列表，支持键盘导航
+    setTimeout(() => {
+        document.getElementById("articlesWrap").focus();
+    }, 100);
 }
 
 let articleSearchQuery="";
@@ -499,7 +558,7 @@ function renderArticles(){
         const displayArticles=articles.filter(a=>!readIds.has(a.id)).length>0
             ? articles.filter(a=>!readIds.has(a.id))
             : articles;
-        const hotArticles=displayArticles.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate)).slice(0,8);
+        const hotArticles=displayArticles.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate)).slice(0,50);
         if(hotArticles.length){
             const allUnread=articles.filter(a=>!readIds.has(a.id)).length;
             const unreadCount=articles.filter(a=>!readIds.has(a.id)).length;
@@ -689,12 +748,16 @@ document.getElementById("closeDetailBtn").addEventListener("click",closeArticle)
     apply(saved||"light");
 })();
 
-// Sidebar toggle: click only, no auto-expand/collapse on hover
+// Sidebar toggle with hover menu
 (function(){
     const sb = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleSidebarBtn");
     const toggleIcon = toggleBtn.querySelector("i");
+    const toggleMenu = document.getElementById("toggleMenu");
+    const collapseAllGroups = document.getElementById("collapseAllGroups");
+    const expandAllGroups = document.getElementById("expandAllGroups");
     const isMobile = ()=> window.innerWidth <= 768;
+
     function setIcon(collapsed){
         if(collapsed){
             toggleIcon.className="fas fa-indent";
@@ -702,7 +765,39 @@ document.getElementById("closeDetailBtn").addEventListener("click",closeArticle)
             toggleIcon.className="fas fa-outdent";
         }
     }
-    // toggle button: click to expand/collapse
+
+    function showMenu() {
+        toggleMenu.classList.add("show");
+    }
+
+    function hideMenu() {
+        toggleMenu.classList.remove("show");
+    }
+
+    function collapseAll() {
+        document.querySelectorAll(".cat-header.open").forEach(el => {
+            el.classList.remove("open");
+            el.nextElementSibling?.classList.remove("open");
+        });
+        hideMenu();
+    }
+
+    function expandAll() {
+        document.querySelectorAll(".cat-header").forEach(el => {
+            el.classList.add("open");
+            el.nextElementSibling?.classList.add("open");
+        });
+        hideMenu();
+    }
+
+    toggleBtn.addEventListener("mouseenter", showMenu);
+    toggleBtn.addEventListener("mouseleave", hideMenu);
+    toggleMenu.addEventListener("mouseenter", showMenu);
+    toggleMenu.addEventListener("mouseleave", hideMenu);
+
+    collapseAllGroups.addEventListener("click", collapseAll);
+    expandAllGroups.addEventListener("click", expandAll);
+
     toggleBtn.addEventListener("click", (e)=>{
         e.stopPropagation();
         if(sb.classList.contains("collapsed")){
@@ -713,7 +808,7 @@ document.getElementById("closeDetailBtn").addEventListener("click",closeArticle)
             setIcon(true);
         }
     });
-    // start collapsed on desktop
+
     if(!isMobile()){ sb.classList.add("collapsed"); setIcon(true); }
 })();
 
@@ -728,12 +823,18 @@ document.getElementById("backToHomeBtn").addEventListener("click",()=>{currentFe
 
 // Enable keyboard navigation for scrollable areas
 document.getElementById("articlesWrap").addEventListener("click", function(e) {
-    if (e.target === this || e.target.classList.contains("article-card")) {
-        this.focus();
-    }
+    this.focus();
+});
+
+document.getElementById("articlesWrap").addEventListener("touchstart", function(e) {
+    this.focus();
 });
 
 document.getElementById("detailBody").addEventListener("click", function(e) {
+    this.focus();
+});
+
+document.getElementById("detailBody").addEventListener("touchstart", function(e) {
     this.focus();
 });
 
