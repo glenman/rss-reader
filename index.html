@@ -47,7 +47,7 @@ body.theme-paper {
     --content-bg: #f9f2df; --modal-bg: #f9f2df; --modal-shadow: rgba(61,43,31,.2);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica Neue,Arial,sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; -webkit-overflow-scrolling: touch; }
+body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica Neue,Arial,sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; -webkit-overflow-scrolling: touch; padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px); }
 .app { display:flex; height:100vh; min-height:-webkit-fill-available; }
 .sidebar { width:var(--sidebar-w); min-width:var(--sidebar-w); background:var(--sidebar-bg); border-right:1px solid var(--border); display:flex; flex-direction:column; transition:width .3s ease,min-width .3s ease; position:relative; }
 .sidebar.collapsed { width:var(--sidebar-collapsed-w); min-width:var(--sidebar-collapsed-w); overflow:hidden; }
@@ -257,6 +257,7 @@ body.theme-paper .detail-body .db-content pre { background:#3d2b1f; color:#f4ecd
     body { height: -webkit-fill-available; }
     .app { height: -webkit-fill-available; }
     .sidebar { height: -webkit-fill-available; }
+    .main { height: -webkit-fill-available; }
 }
 
 </style>
